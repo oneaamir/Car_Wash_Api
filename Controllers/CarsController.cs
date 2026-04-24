@@ -91,4 +91,40 @@ public class CarsController : ControllerBase
 
         return Ok(cars);
     }
+    [HttpGet("{id}")]
+public async Task<ActionResult<CarResponse>> GetCarById(int id)
+{
+    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+    if (string.IsNullOrEmpty(userIdClaim))
+    {
+        return Unauthorized("Invalid token.");
+    }
+
+    var userId = int.Parse(userIdClaim);
+
+    var car = await _context.Cars
+        .FirstOrDefaultAsync(car => car.Id == id && car.UserId == userId && car.IsActive);
+
+    if (car == null)
+    {
+        return NotFound("Car not found.");
+    }
+
+    var response = new CarResponse
+    {
+        Id = car.Id,
+        UserId = car.UserId,
+        CarNumber = car.CarNumber,
+        Brand = car.Brand,
+        Model = car.Model,
+        CarType = car.CarType,
+        ImageUrl = car.ImageUrl,
+        IsActive = car.IsActive,
+        Message = "Car fetched successfully."
+    };
+
+    return Ok(response);
+}
+
 }
