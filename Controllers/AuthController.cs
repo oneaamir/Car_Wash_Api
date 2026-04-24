@@ -5,6 +5,10 @@ using CarWash.Backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+
+
 namespace CarWash.Backend.Controllers;
 
 [ApiController]
@@ -87,4 +91,39 @@ public class AuthController : ControllerBase
 
         return Ok(response);
     }
+    
+[Authorize]
+[HttpGet("profile")]
+public async Task<ActionResult<ProfileResponse>> GetProfile()
+{
+    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+    if (string.IsNullOrEmpty(userIdClaim))
+    {
+        return Unauthorized("Invalid token.");
+    }
+
+    var userId = int.Parse(userIdClaim);
+
+    var user = await _context.Users.FindAsync(userId);
+
+    if (user == null)
+    {
+        return NotFound("User not found.");
+    }
+
+    var response = new ProfileResponse
+    {
+        UserId = user.Id,
+        FullName = user.FullName,
+        Email = user.Email,
+        Role = user.Role,
+        Phone = user.Phone,
+        Message = "Profile fetched successfully."
+    };
+
+    return Ok(response);
+}
+
+
 }
