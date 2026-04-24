@@ -1,0 +1,69 @@
+# Build results
+bin/
+obj/
+out/
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+
+# Entity Framework
+*.edmx.diagram
+*.edmx.sql
+
+# Rider
+*.sln.iml
+
+# Others
+*.dll
+*.pdb
+*.exe
+*.cache
+*.tlog
+*.log
+*.tmp
+*.temp
+*.swp
+*.bak
+*.orig
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# User-specific
+*.user
+*.userprefs
