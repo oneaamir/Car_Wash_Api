@@ -1,6 +1,6 @@
-namespace CarWash.Backend.Models;
+namespace CarWash.Backend.DTOs.Car;
 
-public class Car
+public class CarResponse
 {
     public int Id { get; set; }
 
@@ -16,11 +16,7 @@ public class Car
 
     public string ImageUrl { get; set; } = string.Empty;
 
-    public bool IsActive { get; set; } = true;
+    public bool IsActive { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-    public DateTime? UpdatedAt { get; set; }
-
-    public User? User { get; set; }
+    public string Message { get; set; } = string.Empty;
 }
