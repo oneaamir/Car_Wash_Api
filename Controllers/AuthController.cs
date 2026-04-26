@@ -1,13 +1,8 @@
-using CarWash.Backend.Data;
-using CarWash.Backend.DTOs.Auth;
-using CarWash.Backend.Models;
-using CarWash.Backend.Services;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
 using System.Security.Claims;
+using CarWash.Backend.DTOs.Auth;
+using CarWash.Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-
+using Microsoft.AspNetCore.Mvc;
 
 namespace CarWash.Backend.Controllers;
 
@@ -15,115 +10,58 @@ namespace CarWash.Backend.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly AppDbContext _context;
-    private readonly JwtService _jwtService;
+    private readonly IAuthService _authService;
 
-    public AuthController(AppDbContext context, JwtService jwtService)
+    public AuthController(IAuthService authService)
     {
-        _context = context;
-        _jwtService = jwtService;
+        _authService = authService;
     }
 
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request)
     {
-        var emailExists = await _context.Users
-            .AnyAsync(user => user.Email == request.Email);
+        var result = await _authService.RegisterAsync(request);
 
-        if (emailExists)
+        if (!result.IsSuccess)
         {
-            return BadRequest("Email already exists.");
+            return BadRequest(result.ErrorMessage);
         }
 
-        var user = new User
-        {
-            FullName = request.FullName,
-            Email = request.Email,
-            Phone = request.Phone,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            Role = "Customer"
-        };
-
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-
-        var response = new AuthResponse
-        {
-            UserId = user.Id,
-            FullName = user.FullName,
-            Email = user.Email,
-            Role = user.Role,
-            Message = "Registration successful."
-        };
-
-        return Ok(response);
+        return Ok(result.Response);
     }
 
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
     {
-        var user = await _context.Users
-            .FirstOrDefaultAsync(user => user.Email == request.Email);
+        var result = await _authService.LoginAsync(request);
 
-        if (user == null)
+        if (!result.IsSuccess)
         {
-            return BadRequest("Invalid email or password.");
+            return BadRequest(result.ErrorMessage);
         }
 
-        var isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+        return Ok(result.Response);
+    }
 
-        if (!isPasswordValid)
+    [Authorize]
+    [HttpGet("profile")]
+    public async Task<ActionResult<ProfileResponse>> GetProfile()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userIdClaim))
         {
-            return BadRequest("Invalid email or password.");
+            return Unauthorized("Invalid token.");
         }
 
-        var token = _jwtService.GenerateToken(user);
+        var userId = int.Parse(userIdClaim);
+        var result = await _authService.GetProfileAsync(userId);
 
-        var response = new AuthResponse
+        if (result.IsNotFound)
         {
-            UserId = user.Id,
-            FullName = user.FullName,
-            Email = user.Email,
-            Role = user.Role,
-            Token = token,
-            Message = "Login successful."
-        };
+            return NotFound(result.ErrorMessage);
+        }
 
-        return Ok(response);
+        return Ok(result.Response);
     }
-    
-[Authorize]
-[HttpGet("profile")]
-public async Task<ActionResult<ProfileResponse>> GetProfile()
-{
-    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-    if (string.IsNullOrEmpty(userIdClaim))
-    {
-        return Unauthorized("Invalid token.");
-    }
-
-    var userId = int.Parse(userIdClaim);
-
-    var user = await _context.Users.FindAsync(userId);
-
-    if (user == null)
-    {
-        return NotFound("User not found.");
-    }
-
-    var response = new ProfileResponse
-    {
-        UserId = user.Id,
-        FullName = user.FullName,
-        Email = user.Email,
-        Role = user.Role,
-        Phone = user.Phone,
-        Message = "Profile fetched successfully."
-    };
-
-    return Ok(response);
-}
-
-
 }

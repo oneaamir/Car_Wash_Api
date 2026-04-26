@@ -4,6 +4,7 @@ using CarWash.Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CarWash.Backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260426050537_AddRemainingProjectTablesAndRelations")]
+    partial class AddRemainingProjectTablesAndRelations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -64,9 +67,6 @@ namespace CarWash.Backend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("AssignedWasherId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("BookingDate")
                         .HasColumnType("datetime2");
 
@@ -104,8 +104,6 @@ namespace CarWash.Backend.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AssignedWasherId");
 
                     b.HasIndex("CarId");
 
@@ -412,11 +410,6 @@ namespace CarWash.Backend.Migrations
 
             modelBuilder.Entity("CarWash.Backend.Models.Booking", b =>
                 {
-                    b.HasOne("CarWash.Backend.Models.User", "AssignedWasher")
-                        .WithMany()
-                        .HasForeignKey("AssignedWasherId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("CarWash.Backend.Models.Car", "Car")
                         .WithMany()
                         .HasForeignKey("CarId")
@@ -438,8 +431,6 @@ namespace CarWash.Backend.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("AssignedWasher");
 
                     b.Navigation("Car");
 

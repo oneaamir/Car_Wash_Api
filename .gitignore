@@ -67,3 +67,8 @@ desktop.ini
 # User-specific
 *.user
 *.userprefs
+
+# Local config and stray files (do not commit)
+appsettings.Local.json
+appsettings.Production.json
+bashrc

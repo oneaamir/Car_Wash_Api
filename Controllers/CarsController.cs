@@ -1,23 +1,21 @@
 using System.Security.Claims;
-using CarWash.Backend.Data;
 using CarWash.Backend.DTOs.Car;
-using CarWash.Backend.Models;
+using CarWash.Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace CarWash.Backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = "Customer")]
 public class CarsController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly ICarService _carService;
 
-    public CarsController(AppDbContext context)
+    public CarsController(ICarService carService)
     {
-        _context = context;
+        _carService = carService;
     }
 
     [HttpPost]
@@ -31,32 +29,7 @@ public class CarsController : ControllerBase
         }
 
         var userId = int.Parse(userIdClaim);
-
-        var car = new Car
-        {
-            UserId = userId,
-            CarNumber = request.CarNumber,
-            Brand = request.Brand,
-            Model = request.Model,
-            CarType = request.CarType,
-            ImageUrl = request.ImageUrl
-        };
-
-        _context.Cars.Add(car);
-        await _context.SaveChangesAsync();
-
-        var response = new CarResponse
-        {
-            Id = car.Id,
-            UserId = car.UserId,
-            CarNumber = car.CarNumber,
-            Brand = car.Brand,
-            Model = car.Model,
-            CarType = car.CarType,
-            ImageUrl = car.ImageUrl,
-            IsActive = car.IsActive,
-            Message = "Car added successfully."
-        };
+        var response = await _carService.CreateCarAsync(userId, request);
 
         return Ok(response);
     }
@@ -72,59 +45,74 @@ public class CarsController : ControllerBase
         }
 
         var userId = int.Parse(userIdClaim);
-
-        var cars = await _context.Cars
-            .Where(car => car.UserId == userId && car.IsActive)
-            .Select(car => new CarResponse
-            {
-                Id = car.Id,
-                UserId = car.UserId,
-                CarNumber = car.CarNumber,
-                Brand = car.Brand,
-                Model = car.Model,
-                CarType = car.CarType,
-                ImageUrl = car.ImageUrl,
-                IsActive = car.IsActive,
-                Message = "Cars fetched successfully."
-            })
-            .ToListAsync();
+        var cars = await _carService.GetMyCarsAsync(userId);
 
         return Ok(cars);
     }
+
     [HttpGet("{id}")]
-public async Task<ActionResult<CarResponse>> GetCarById(int id)
-{
-    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-    if (string.IsNullOrEmpty(userIdClaim))
+    public async Task<ActionResult<CarResponse>> GetCarById(int id)
     {
-        return Unauthorized("Invalid token.");
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            return Unauthorized("Invalid token.");
+        }
+
+        var userId = int.Parse(userIdClaim);
+
+        var response = await _carService.GetCarByIdAsync(id, userId);
+
+        if (response == null)
+        {
+            return NotFound("Car not found.");
+        }
+
+        return Ok(response);
     }
 
-    var userId = int.Parse(userIdClaim);
-
-    var car = await _context.Cars
-        .FirstOrDefaultAsync(car => car.Id == id && car.UserId == userId && car.IsActive);
-
-    if (car == null)
+    [HttpPut("{id}")]
+    public async Task<ActionResult<CarResponse>> UpdateCar(int id, UpdateCarRequest request)
     {
-        return NotFound("Car not found.");
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            return Unauthorized("Invalid token.");
+        }
+
+        var userId = int.Parse(userIdClaim);
+
+        var response = await _carService.UpdateCarAsync(id, userId, request);
+
+        if (response == null)
+        {
+            return NotFound("Car not found.");
+        }
+
+        return Ok(response);
     }
 
-    var response = new CarResponse
+    [HttpDelete("{id}")]
+    public async Task<ActionResult<CarResponse>> DeleteCar(int id)
     {
-        Id = car.Id,
-        UserId = car.UserId,
-        CarNumber = car.CarNumber,
-        Brand = car.Brand,
-        Model = car.Model,
-        CarType = car.CarType,
-        ImageUrl = car.ImageUrl,
-        IsActive = car.IsActive,
-        Message = "Car fetched successfully."
-    };
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-    return Ok(response);
-}
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            return Unauthorized("Invalid token.");
+        }
 
+        var userId = int.Parse(userIdClaim);
+
+        var response = await _carService.DeleteCarAsync(id, userId);
+
+        if (response == null)
+        {
+            return NotFound("Car not found.");
+        }
+
+        return Ok(response);
+    }
 }
