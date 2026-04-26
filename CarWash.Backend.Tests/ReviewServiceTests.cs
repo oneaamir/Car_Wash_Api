@@ -29,8 +29,8 @@ public class ReviewServiceTests
             Comment = "Great service"
         });
 
-        Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.ErrorMessage, Is.EqualTo("Review can only be added after booking is completed."));
-        Assert.That(reviewRepository.SaveChangesCalled, Is.False);
+        ClassicAssert.IsFalse(result.IsSuccess);
+        ClassicAssert.AreEqual("Review can only be added after booking is completed.", result.ErrorMessage);
+        ClassicAssert.IsFalse(reviewRepository.SaveChangesCalled);
     }
 }

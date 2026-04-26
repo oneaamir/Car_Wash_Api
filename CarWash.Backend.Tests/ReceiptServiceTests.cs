@@ -34,9 +34,9 @@ public class ReceiptServiceTests
 
         var result = await service.GenerateReceiptAsync(3, 30);
 
-        Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.ErrorMessage, Is.EqualTo("Receipt can only be generated after successful payment."));
-        Assert.That(receiptRepository.SaveChangesCalled, Is.False);
-        Assert.That(emailService.SentEmails, Is.Empty);
+        ClassicAssert.IsFalse(result.IsSuccess);
+        ClassicAssert.AreEqual("Receipt can only be generated after successful payment.", result.ErrorMessage);
+        ClassicAssert.IsFalse(receiptRepository.SaveChangesCalled);
+        ClassicAssert.IsEmpty(emailService.SentEmails);
     }
 }

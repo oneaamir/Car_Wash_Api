@@ -27,12 +27,12 @@ public class BookingServiceTests
 
         var result = await service.CancelBookingAsync(11, 10);
 
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.Response, Is.Not.Null);
-        Assert.That(result.Response!.Status, Is.EqualTo("Cancelled"));
-        Assert.That(result.Response.Message, Is.EqualTo("Booking cancelled successfully."));
-        Assert.That(bookingRepository.BookingByIdAndUser!.Status, Is.EqualTo("Cancelled"));
-        Assert.That(bookingRepository.SaveChangesCalled, Is.True);
+        ClassicAssert.IsTrue(result.IsSuccess);
+        ClassicAssert.IsNotNull(result.Response);
+        ClassicAssert.AreEqual("Cancelled", result.Response!.Status);
+        ClassicAssert.AreEqual("Booking cancelled successfully.", result.Response.Message);
+        ClassicAssert.AreEqual("Cancelled", bookingRepository.BookingByIdAndUser!.Status);
+        ClassicAssert.IsTrue(bookingRepository.SaveChangesCalled);
     }
 
     [Test]
@@ -57,8 +57,8 @@ public class BookingServiceTests
 
         var result = await service.CancelBookingAsync(1, 10);
 
-        Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.ErrorMessage, Is.EqualTo("Booking cannot be cancelled when status is Completed."));
-        Assert.That(bookingRepository.SaveChangesCalled, Is.False);
+        ClassicAssert.IsFalse(result.IsSuccess);
+        ClassicAssert.AreEqual("Booking cannot be cancelled when status is Completed.", result.ErrorMessage);
+        ClassicAssert.IsFalse(bookingRepository.SaveChangesCalled);
     }
 }

@@ -22,11 +22,11 @@ public class WasherServiceTests
             Status = "InProgress"
         });
 
-        Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.IsNotFound, Is.True);
-        Assert.That(result.ErrorMessage, Is.EqualTo("Assigned booking not found."));
-        Assert.That(bookingRepository.SaveChangesCalled, Is.False);
-        Assert.That(emailService.SentEmails, Is.Empty);
+        ClassicAssert.IsFalse(result.IsSuccess);
+        ClassicAssert.IsTrue(result.IsNotFound);
+        ClassicAssert.AreEqual("Assigned booking not found.", result.ErrorMessage);
+        ClassicAssert.IsFalse(bookingRepository.SaveChangesCalled);
+        ClassicAssert.IsEmpty(emailService.SentEmails);
     }
 
     [Test]
@@ -51,9 +51,9 @@ public class WasherServiceTests
             Status = "Completed"
         });
 
-        Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.ErrorMessage, Is.EqualTo("Washer cannot change booking status from Pending to Completed."));
-        Assert.That(bookingRepository.SaveChangesCalled, Is.False);
-        Assert.That(emailService.SentEmails, Is.Empty);
+        ClassicAssert.IsFalse(result.IsSuccess);
+        ClassicAssert.AreEqual("Washer cannot change booking status from Pending to Completed.", result.ErrorMessage);
+        ClassicAssert.IsFalse(bookingRepository.SaveChangesCalled);
+        ClassicAssert.IsEmpty(emailService.SentEmails);
     }
 }

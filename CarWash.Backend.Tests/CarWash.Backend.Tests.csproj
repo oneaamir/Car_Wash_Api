@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <Using Include="NUnit.Framework" />
+    <Using Include="NUnit.Framework.Legacy" />
   </ItemGroup>
 
   <ItemGroup>
