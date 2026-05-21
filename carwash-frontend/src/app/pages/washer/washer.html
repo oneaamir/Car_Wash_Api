@@ -1,0 +1,145 @@
+<div class="washer-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="container">
+      <h1>My Assigned Jobs</h1>
+      <p>View and update the status of your assigned car wash bookings</p>
+    </div>
+  </div>
+
+  <div class="container">
+
+    @if (successMsg()) {
+      <div class="success-message">{{ successMsg() }}</div>
+    }
+    @if (pageError()) {
+      <div class="error-message">{{ pageError() }}</div>
+    }
+    @if (updateError()) {
+      <div class="error-message">{{ updateError() }}</div>
+    }
+
+    <!-- Status Filter Chips -->
+    <div class="filter-chips">
+      @for (s of statusFilters; track s) {
+        <button
+          class="chip"
+          [class.active]="statusFilter() === s"
+          (click)="statusFilter.set(s)"
+        >{{ s }}</button>
+      }
+    </div>
+
+    <!-- Loading -->
+    @if (isLoading()) {
+      <div class="loading-list">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
+    }
+
+    <!-- List -->
+    @if (!isLoading()) {
+      @if (filteredBookings.length === 0) {
+        <div class="empty-state">
+          <span class="empty-icon">🧹</span>
+          <h3>No jobs found</h3>
+          <p>
+            @if (statusFilter() === 'All') {
+              You have no assigned bookings at the moment.
+            } @else {
+              No bookings with status "{{ statusFilter() }}" assigned to you.
+            }
+          </p>
+        </div>
+      } @else {
+        <div class="jobs-list">
+          @for (booking of filteredBookings; track booking.id) {
+            <div class="job-card" [class.card-completed]="booking.status === 'Completed'">
+
+              <div class="job-header">
+                <div class="job-header-left">
+                  <span class="job-id">Job #{{ booking.id }}</span>
+                  <span class="status-badge" [class]="getStatusClass(booking.status)">
+                    {{ booking.status }}
+                  </span>
+                </div>
+                <span class="job-type">{{ booking.bookingType }}</span>
+              </div>
+
+              <div class="job-body">
+                <div class="info-block">
+                  <span class="info-label">Vehicle</span>
+                  <span class="info-value">
+                    {{ booking.carBrand }} {{ booking.carModel }}
+                    <small>({{ booking.carNumber }})</small>
+                  </span>
+                </div>
+                <div class="info-block">
+                  <span class="info-label">Service</span>
+                  <span class="info-value">{{ booking.servicePlanName }}</span>
+                </div>
+                <div class="info-block">
+                  <span class="info-label">Date</span>
+                  <span class="info-value">{{ formatDate(booking.bookingDate) }}</span>
+                </div>
+                <div class="info-block">
+                  <span class="info-label">Amount</span>
+                  <span class="info-value amount">Rs. {{ booking.totalAmount }}</span>
+                </div>
+                <div class="info-block full-width">
+                  <span class="info-label">Address</span>
+                  <span class="info-value">{{ booking.address }}</span>
+                </div>
+                @if (booking.addOnNames.length) {
+                  <div class="info-block full-width">
+                    <span class="info-label">Add-Ons</span>
+                    <span class="info-value">
+                      @for (name of booking.addOnNames; track name) {
+                        <span class="addon-tag">{{ name }}</span>
+                      }
+                    </span>
+                  </div>
+                }
+                @if (booking.notes) {
+                  <div class="info-block full-width">
+                    <span class="info-label">Notes</span>
+                    <span class="info-value notes">{{ booking.notes }}</span>
+                  </div>
+                }
+              </div>
+
+              @if (getNextStatus(booking.status)) {
+                <div class="job-footer">
+                  <button
+                    class="btn-update"
+                    [class.btn-start]="booking.status === 'Confirmed'"
+                    [class.btn-complete]="booking.status === 'InProgress'"
+                    (click)="updateStatus(booking)"
+                    [disabled]="updatingId() === booking.id"
+                  >
+                    @if (updatingId() === booking.id) {
+                      Updating...
+                    } @else {
+                      {{ getNextLabel(booking.status) }}
+                    }
+                  </button>
+                </div>
+              }
+
+              @if (booking.status === 'Completed') {
+                <div class="job-footer completed-footer">
+                  <span class="completed-text">✔ Job Completed</span>
+                </div>
+              }
+
+            </div>
+          }
+        </div>
+      }
+    }
+
+  </div>
+</div>

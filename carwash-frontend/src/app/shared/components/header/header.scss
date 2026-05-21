@@ -1,0 +1,137 @@
+/* Header Styles */
+
+.header {
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;   /* Header upar hi rehta hai scroll karne par */
+  top: 0;
+  z-index: 100;       /* Sab cheezein ke upar dikhega */
+  height: 65px;
+  display: flex;
+  align-items: center;
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Logo */
+.logo-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo-icon {
+  font-size: 24px;
+}
+
+.logo-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a73e8;
+}
+
+/* Navigation */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-link {
+  padding: 6px 12px;
+  color: #5f6368;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.nav-link:hover {
+  color: #1a73e8;
+  background-color: #e8f0fe;
+  text-decoration: none;
+}
+
+/* Active link - routerLinkActive yeh class add karta hai */
+.nav-link.active {
+  color: #1a73e8;
+  background-color: #e8f0fe;
+}
+
+/* Logged-in user name link */
+.user-link {
+  color: #1a73e8;
+  font-weight: 500;
+}
+
+/* Auth buttons */
+.auth-buttons {
+  display: flex;
+  gap: 8px;
+  margin-left: 16px;
+}
+
+.nav-btn {
+  padding: 7px 16px;
+  font-size: 13px;
+}
+
+/* Mobile menu toggle button */
+.menu-toggle {
+  display: none;    /* Desktop pe hidden */
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.menu-toggle span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background-color: #5f6368;
+  border-radius: 2px;
+}
+
+/* Responsive - Mobile screens */
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: flex; /* Mobile pe hamburger dikhao */
+  }
+
+  .nav {
+    display: none;  /* Mobile pe nav hide karo */
+    position: absolute;
+    top: 65px;
+    left: 0;
+    right: 0;
+    background: white;
+    flex-direction: column;
+    padding: 16px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    gap: 8px;
+  }
+
+  .nav.open {
+    display: flex; /* Menu open ho to dikhao */
+  }
+
+  .auth-buttons {
+    margin-left: 0;
+    width: 100%;
+    flex-direction: column;
+  }
+}

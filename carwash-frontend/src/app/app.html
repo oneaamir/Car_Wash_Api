@@ -1,1 +1,14 @@
-<router-outlet></router-outlet>
+<!-- App Root Template -->
+<!-- Yeh poori app ka main layout hai -->
+<!-- Header + Main Content + Footer -->
+
+<app-header></app-header>
+
+<!-- router-outlet = Angular ka magic tag -->
+<!-- Jis URL pe jao, us URL ka component yahan render hoga -->
+<!-- Jaise: /home pe HomeComponent yahan dikhe ga -->
+<main class="main-content">
+  <router-outlet></router-outlet>
+</main>
+
+<app-footer></app-footer>

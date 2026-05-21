@@ -1,0 +1,106 @@
+/* Profile Page Styles */
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Left side - avatar card */
+.profile-card {
+  text-align: center;
+  padding: 32px 24px;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #1a73e8;
+  color: white;
+  font-size: 32px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.profile-name {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.profile-email {
+  color: #5f6368;
+  font-size: 14px;
+  margin-top: 8px;
+  word-break: break-all;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-customer {
+  background: #e8f0fe;
+  color: #1a73e8;
+}
+
+.badge-admin {
+  background: #fce8e6;
+  color: #c5221f;
+}
+
+.badge-washer {
+  background: #e6f4ea;
+  color: #137333;
+}
+
+.logout-btn {
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* Right side - details */
+.info-card {
+  padding: 28px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  color: #5f6368;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.info-value {
+  color: #202124;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+}

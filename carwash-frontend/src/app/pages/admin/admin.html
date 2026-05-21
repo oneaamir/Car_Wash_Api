@@ -1,0 +1,260 @@
+<div class="admin-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="container">
+      <h1>Admin Dashboard</h1>
+      <p>Manage bookings, assign washers, and view all users</p>
+    </div>
+  </div>
+
+  <div class="container">
+
+    @if (successMsg()) {
+      <div class="success-message">{{ successMsg() }}</div>
+    }
+    @if (pageError()) {
+      <div class="error-message">{{ pageError() }}</div>
+    }
+
+    <!-- Tab Navigation -->
+    <div class="tab-bar">
+      <button
+        class="tab-btn"
+        [class.active]="activeTab() === 'bookings'"
+        (click)="setTab('bookings')"
+      >
+        All Bookings
+        <span class="tab-count">{{ allBookings().length }}</span>
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeTab() === 'users'"
+        (click)="setTab('users')"
+      >
+        All Users
+        <span class="tab-count">{{ allUsers().length }}</span>
+      </button>
+    </div>
+
+    <!-- ====== BOOKINGS TAB ====== -->
+    @if (activeTab() === 'bookings') {
+
+      <!-- Status Filter Chips -->
+      <div class="filter-chips">
+        @for (s of statusFilters; track s) {
+          <button
+            class="chip"
+            [class.active]="statusFilter() === s"
+            (click)="setFilter(s)"
+          >{{ s }}</button>
+        }
+      </div>
+
+      @if (isLoadingBookings()) {
+        <div class="loading-list">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+      }
+
+      @if (!isLoadingBookings()) {
+        @if (filteredBookings.length === 0) {
+          <div class="empty-state">
+            <span class="empty-icon">📋</span>
+            <h3>No bookings found</h3>
+            <p>No bookings match the selected status filter.</p>
+          </div>
+        } @else {
+          <div class="bookings-list">
+            @for (booking of filteredBookings; track booking.id) {
+              <div class="booking-card">
+
+                <!-- Card Header -->
+                <div class="card-header">
+                  <div class="card-header-left">
+                    <span class="booking-id">Booking #{{ booking.id }}</span>
+                    <span class="status-badge" [class]="getStatusClass(booking.status)">
+                      {{ booking.status }}
+                    </span>
+                  </div>
+                  <span class="booking-amount">Rs. {{ booking.totalAmount }}</span>
+                </div>
+
+                <!-- Card Body -->
+                <div class="card-body">
+                  <div class="info-row">
+                    <span class="info-label">Customer</span>
+                    <span class="info-value">{{ booking.customerName }}
+                      <small>({{ booking.customerEmail }})</small>
+                    </span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Vehicle</span>
+                    <span class="info-value">{{ booking.carNumber }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Service</span>
+                    <span class="info-value">{{ booking.servicePlanName }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Type / Date</span>
+                    <span class="info-value">{{ booking.bookingType }} — {{ formatDate(booking.bookingDate) }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Address</span>
+                    <span class="info-value">{{ booking.address }}</span>
+                  </div>
+                  @if (booking.addOnNames.length) {
+                    <div class="info-row">
+                      <span class="info-label">Add-Ons</span>
+                      <span class="info-value">
+                        @for (name of booking.addOnNames; track name) {
+                          <span class="addon-tag">{{ name }}</span>
+                        }
+                      </span>
+                    </div>
+                  }
+                  <div class="info-row">
+                    <span class="info-label">Washer</span>
+                    <span class="info-value">
+                      @if (booking.assignedWasherName) {
+                        {{ booking.assignedWasherName }}
+                      } @else {
+                        <em class="not-assigned">Not assigned</em>
+                      }
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Card Actions -->
+                <div class="card-actions">
+                  @if (booking.status !== 'Completed' && booking.status !== 'Cancelled') {
+                    <button
+                      class="btn-action btn-assign"
+                      (click)="assigningId() === booking.id ? closeAssign() : openAssign(booking.id, booking.assignedWasherId)"
+                    >
+                      {{ assigningId() === booking.id ? '✕ Cancel' : '👷 Assign Washer' }}
+                    </button>
+                  }
+                  @if (getNextStatuses(booking.status).length > 0) {
+                    <button
+                      class="btn-action btn-status"
+                      (click)="updatingId() === booking.id ? closeUpdate() : openUpdate(booking.id)"
+                    >
+                      {{ updatingId() === booking.id ? '✕ Cancel' : '🔄 Update Status' }}
+                    </button>
+                  }
+                </div>
+
+                <!-- Inline Assign Washer Panel -->
+                @if (assigningId() === booking.id) {
+                  <div class="inline-panel">
+                    <label class="inline-label">Select Washer</label>
+                    @if (assignError()) {
+                      <div class="inline-error">{{ assignError() }}</div>
+                    }
+                    @if (washers.length === 0) {
+                      <p class="inline-hint">No washers registered in the system.</p>
+                    } @else {
+                      <select
+                        [ngModel]="assignWasherId()"
+                        (ngModelChange)="assignWasherId.set($event)"
+                        class="inline-select"
+                        name="washer-{{ booking.id }}"
+                      >
+                        <option [ngValue]="0">-- Select Washer --</option>
+                        @for (w of washers; track w.id) {
+                          <option [ngValue]="w.id">{{ w.fullName }} ({{ w.email }})</option>
+                        }
+                      </select>
+                      <button
+                        class="btn-save"
+                        (click)="submitAssign(booking.id)"
+                        [disabled]="isAssigning()"
+                      >
+                        {{ isAssigning() ? 'Saving...' : 'Save Assignment' }}
+                      </button>
+                    }
+                  </div>
+                }
+
+                <!-- Inline Status Update Panel -->
+                @if (updatingId() === booking.id) {
+                  <div class="inline-panel">
+                    <label class="inline-label">Change Status To:</label>
+                    @if (updateError()) {
+                      <div class="inline-error">{{ updateError() }}</div>
+                    }
+                    <div class="status-btns">
+                      @for (s of getNextStatuses(booking.status); track s) {
+                        <button
+                          class="btn-next-status"
+                          [class]="'btn-next-' + s.toLowerCase()"
+                          (click)="submitStatus(booking.id, s)"
+                          [disabled]="isUpdating()"
+                        >
+                          {{ s }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+
+              </div>
+            }
+          </div>
+        }
+      }
+    }
+
+    <!-- ====== USERS TAB ====== -->
+    @if (activeTab() === 'users') {
+
+      @if (isLoadingUsers()) {
+        <div class="loading-list">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+      }
+
+      @if (!isLoadingUsers()) {
+        @if (allUsers().length === 0) {
+          <div class="empty-state">
+            <span class="empty-icon">👥</span>
+            <h3>No users found</h3>
+          </div>
+        } @else {
+          <div class="users-table">
+            <div class="table-header">
+              <span>Name</span>
+              <span>Email</span>
+              <span>Phone</span>
+              <span>Role</span>
+              <span>Status</span>
+            </div>
+            @for (user of allUsers(); track user.id) {
+              <div class="table-row">
+                <span class="user-name">{{ user.fullName }}</span>
+                <span class="user-email">{{ user.email }}</span>
+                <span>{{ user.phone || '—' }}</span>
+                <span>
+                  <span class="role-badge" [class]="getRoleClass(user.role)">{{ user.role }}</span>
+                </span>
+                <span>
+                  @if (user.isActive) {
+                    <span class="active-badge">Active</span>
+                  } @else {
+                    <span class="inactive-badge">Inactive</span>
+                  }
+                </span>
+              </div>
+            }
+          </div>
+        }
+      }
+    }
+
+  </div>
+</div>

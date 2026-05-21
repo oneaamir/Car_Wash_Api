@@ -1,0 +1,84 @@
+<!-- Login Page -->
+<div class="auth-page">
+  <div class="auth-card card">
+
+    <!-- Header -->
+    <div class="auth-header">
+      <div class="auth-icon">🔐</div>
+      <h1 class="auth-title">Welcome Back</h1>
+      <p class="auth-subtitle">Login to your CarWash account</p>
+    </div>
+
+    <!-- Error Message -->
+    <!-- @if = Angular 17+ conditional rendering -->
+    <!-- errorMessage truthy ho (empty string nahi ho) tab dikhao -->
+    @if (errorMessage) {
+      <div class="error-message">{{ errorMessage }}</div>
+    }
+
+    <!-- Login Form -->
+    <!-- (ngSubmit) = form submit hone par onSubmit() call karo -->
+    <!-- #loginForm="ngForm" = form ka reference lo (validation ke liye) -->
+    <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="your@email.com"
+          [(ngModel)]="formData.email"
+          required
+          email
+          #emailField="ngModel"
+        />
+        <!-- Validation error - sirf tab dikhao jab field touch ki ho aur invalid ho -->
+        @if (emailField.invalid && emailField.touched) {
+          <span class="field-error">Valid email is required</span>
+        }
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Enter your password"
+          [(ngModel)]="formData.password"
+          required
+          minlength="6"
+          #passwordField="ngModel"
+        />
+        @if (passwordField.invalid && passwordField.touched) {
+          <span class="field-error">Password must be at least 6 characters</span>
+        }
+      </div>
+
+      <!-- Submit Button -->
+      <!-- [disabled] = isLoading true ho ya form invalid ho to button disable karo -->
+      <button
+        type="submit"
+        class="btn btn-primary submit-btn"
+        [disabled]="isLoading || loginForm.invalid"
+      >
+        <!-- @if se loading state dikhao -->
+        @if (isLoading) {
+          Logging in...
+        } @else {
+          Login
+        }
+      </button>
+
+    </form>
+
+    <!-- Register Link -->
+    <div class="auth-footer">
+      <p>Don't have an account? <a routerLink="/register">Register here</a></p>
+    </div>
+
+  </div>
+</div>

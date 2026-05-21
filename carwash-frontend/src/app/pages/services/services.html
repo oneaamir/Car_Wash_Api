@@ -1,0 +1,106 @@
+<div class="services-page">
+
+  <!-- Hero Section -->
+  <section class="services-hero">
+    <h1>Our Services</h1>
+    <p>Choose from our premium car wash packages and optional add-on services</p>
+  </section>
+
+  <!-- Service Plans Section -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Wash Packages</h2>
+      <p class="section-subtitle">Select the package that best suits your requirements</p>
+
+      @if (isLoadingPlans()) {
+        <div class="loading-grid">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+      }
+
+      @if (errorPlans()) {
+        <div class="error-message">{{ errorPlans() }}</div>
+      }
+
+      @if (!isLoadingPlans() && !errorPlans()) {
+        @if (plans().length === 0) {
+          <div class="empty-state">
+            <span class="empty-icon">📋</span>
+            <p>No service plans are currently available. Please check back later.</p>
+          </div>
+        } @else {
+          <div class="plans-grid">
+            @for (plan of plans(); track plan.id) {
+              <div class="plan-card">
+                <div class="plan-icon">{{ getPlanIcon(plan.name) }}</div>
+                <h3 class="plan-name">{{ plan.name }}</h3>
+                <p class="plan-description">{{ plan.description }}</p>
+                <div class="plan-price">
+                  <span class="price-amount">Rs. {{ plan.price }}</span>
+                  <span class="price-label">per wash</span>
+                </div>
+                <div class="plan-footer">
+                  <span class="active-badge">Available</span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+  </section>
+
+  <!-- Add-Ons Section -->
+  <section class="section addons-section">
+    <div class="container">
+      <h2 class="section-title">Extra Add-Ons</h2>
+      <p class="section-subtitle">Enhance your wash with additional services</p>
+
+      @if (isLoadingAddOns()) {
+        <div class="loading-grid">
+          <div class="skeleton-card small"></div>
+          <div class="skeleton-card small"></div>
+          <div class="skeleton-card small"></div>
+          <div class="skeleton-card small"></div>
+        </div>
+      }
+
+      @if (errorAddOns()) {
+        <div class="error-message">{{ errorAddOns() }}</div>
+      }
+
+      @if (!isLoadingAddOns() && !errorAddOns()) {
+        @if (addOns().length === 0) {
+          <div class="empty-state">
+            <span class="empty-icon">🔧</span>
+            <p>No add-ons are currently available. Please check back later.</p>
+          </div>
+        } @else {
+          <div class="addons-grid">
+            @for (addon of addOns(); track addon.id) {
+              <div class="addon-card">
+                <div class="addon-info">
+                  <span class="addon-icon">➕</span>
+                  <span class="addon-name">{{ addon.name }}</span>
+                </div>
+                <span class="addon-price">Rs. {{ addon.price }}</span>
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="container">
+      <h2>Ready to Book?</h2>
+      <p>Select your preferred package and book your car wash service today</p>
+      <a routerLink="/login" class="btn btn-primary btn-large">Book Now</a>
+    </div>
+  </section>
+
+</div>

@@ -1,5 +1,9 @@
 using CarWash.Backend.Models;
 using CarWash.Backend.Repositories.Interfaces;
+using CarWash.Backend.DTOs.Auth;
+using CarWash.Backend.DTOs.Booking;
+using CarWash.Backend.DTOs.Washer;
+using CarWash.Backend.Services;
 using CarWash.Backend.Services.Interfaces;
 
 namespace CarWash.Backend.Tests;
@@ -137,4 +141,46 @@ internal class FakeAddOnRepository : IAddOnRepository
     public Task<List<AddOn>> GetActiveByIdsAsync(List<int> ids) => Task.FromResult(new List<AddOn>());
     public Task<List<AddOn>> GetAllActiveAsync() => Task.FromResult(new List<AddOn>());
     public Task SaveChangesAsync() => Task.CompletedTask;
+}
+
+internal class FakeAuthService : IAuthService
+{
+    public AuthServiceResult<AuthResponse> RegisterResult { get; set; } = new();
+    public AuthServiceResult<AuthResponse> LoginResult { get; set; } = new();
+    public AuthServiceResult<ProfileResponse> ProfileResult { get; set; } = new();
+
+    public Task<AuthServiceResult<ProfileResponse>> GetProfileAsync(int userId) => Task.FromResult(ProfileResult);
+
+    public Task<AuthServiceResult<AuthResponse>> LoginAsync(LoginRequest request) => Task.FromResult(LoginResult);
+
+    public Task<AuthServiceResult<AuthResponse>> RegisterAsync(RegisterRequest request) => Task.FromResult(RegisterResult);
+}
+
+internal class FakeBookingService : IBookingService
+{
+    public BookingServiceResult CreateBookingResult { get; set; } = new();
+    public List<BookingResponse> MyBookings { get; set; } = new();
+    public BookingResponse? BookingByIdResult { get; set; }
+    public BookingServiceResult CancelBookingResult { get; set; } = new();
+
+    public Task<BookingServiceResult> CancelBookingAsync(int id, int userId) => Task.FromResult(CancelBookingResult);
+
+    public Task<BookingServiceResult> CreateBookingAsync(int userId, CreateBookingRequest request) => Task.FromResult(CreateBookingResult);
+
+    public Task<BookingResponse?> GetBookingByIdAsync(int id, int userId) => Task.FromResult(BookingByIdResult);
+
+    public Task<List<BookingResponse>> GetMyBookingsAsync(int userId) => Task.FromResult(MyBookings);
+}
+
+internal class FakeWasherService : IWasherService
+{
+    public List<BookingResponse> AssignedBookings { get; set; } = new();
+    public BookingResponse? AssignedBookingByIdResult { get; set; }
+    public WasherServiceResult UpdateStatusResult { get; set; } = new();
+
+    public Task<BookingResponse?> GetAssignedBookingByIdAsync(int id, int washerId) => Task.FromResult(AssignedBookingByIdResult);
+
+    public Task<List<BookingResponse>> GetAssignedBookingsAsync(int washerId) => Task.FromResult(AssignedBookings);
+
+    public Task<WasherServiceResult> UpdateAssignedBookingStatusAsync(int id, int washerId, UpdateAssignedBookingStatusRequest request) => Task.FromResult(UpdateStatusResult);
 }

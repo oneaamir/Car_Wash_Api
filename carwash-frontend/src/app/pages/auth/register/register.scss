@@ -1,0 +1,69 @@
+/* Register page uses same styles as login */
+/* Yeh file login.scss se same hi hai - shared styles global mein hain */
+
+.auth-page {
+  min-height: calc(100vh - 130px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #e8f0fe 0%, #fce8e6 100%);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 40px;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.auth-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.auth-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #202124;
+  margin-bottom: 6px;
+}
+
+.auth-subtitle {
+  color: #5f6368;
+  font-size: 14px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  margin-top: 8px;
+}
+
+.submit-btn:disabled {
+  background-color: #dadce0;
+  cursor: not-allowed;
+}
+
+.field-error {
+  display: block;
+  color: #ea4335;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+input.ng-invalid.ng-touched {
+  border-color: #ea4335;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #5f6368;
+}

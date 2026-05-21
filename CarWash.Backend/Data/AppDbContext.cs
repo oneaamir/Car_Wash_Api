@@ -20,6 +20,7 @@ public class AppDbContext : DbContext
     public DbSet<Review> Reviews { get; set; }
     public DbSet<Receipt> Receipts { get; set; }
 
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -46,7 +47,7 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Car>()
             .HasOne(car => car.User)
-            .WithMany()
+            .WithMany(u => u.Cars)
             .HasForeignKey(car => car.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 

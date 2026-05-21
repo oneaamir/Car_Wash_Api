@@ -1,0 +1,129 @@
+<!-- Register Page -->
+<div class="auth-page">
+  <div class="auth-card card">
+
+    <div class="auth-header">
+      <div class="auth-icon">🚗</div>
+      <h1 class="auth-title">Create Account</h1>
+      <p class="auth-subtitle">Join CarWash today — it's free!</p>
+    </div>
+
+    @if (errorMessage) {
+      <div class="error-message">{{ errorMessage }}</div>
+    }
+
+    @if (successMessage) {
+      <div class="success-message">{{ successMessage }}</div>
+    }
+
+    <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
+
+      <!-- Full Name -->
+      <div class="form-group">
+        <label for="fullName">Full Name</label>
+        <input
+          type="text"
+          id="fullName"
+          name="fullName"
+          placeholder="Muhammad Ali"
+          [(ngModel)]="formData.fullName"
+          required
+          minlength="3"
+          #nameField="ngModel"
+        />
+        @if (nameField.invalid && nameField.touched) {
+          <span class="field-error">Name must be at least 3 characters</span>
+        }
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="your@email.com"
+          [(ngModel)]="formData.email"
+          required
+          email
+          #emailField="ngModel"
+        />
+        @if (emailField.invalid && emailField.touched) {
+          <span class="field-error">Valid email is required</span>
+        }
+      </div>
+
+      <!-- Phone -->
+      <div class="form-group">
+        <label for="phone">Phone Number</label>
+        <input
+          type="tel"
+          id="phone"
+          name="phone"
+          placeholder="03001234567"
+          [(ngModel)]="formData.phone"
+          required
+          pattern="[0-9]{10,11}"
+          #phoneField="ngModel"
+        />
+        @if (phoneField.invalid && phoneField.touched) {
+          <span class="field-error">Valid phone number is required (10-11 digits)</span>
+        }
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Minimum 6 characters"
+          [(ngModel)]="formData.password"
+          required
+          minlength="6"
+          #passwordField="ngModel"
+        />
+        @if (passwordField.invalid && passwordField.touched) {
+          <span class="field-error">Password must be at least 6 characters</span>
+        }
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <input
+          type="password"
+          id="confirmPassword"
+          name="confirmPassword"
+          placeholder="Repeat your password"
+          [(ngModel)]="formData.confirmPassword"
+          required
+          #confirmField="ngModel"
+        />
+        @if (confirmField.invalid && confirmField.touched) {
+          <span class="field-error">Please confirm your password</span>
+        }
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn-primary submit-btn"
+        [disabled]="isLoading || registerForm.invalid"
+      >
+        @if (isLoading) {
+          Registering...
+        } @else {
+          Create Account
+        }
+      </button>
+
+    </form>
+
+    <div class="auth-footer">
+      <p>Already have an account? <a routerLink="/login">Login here</a></p>
+    </div>
+
+  </div>
+</div>

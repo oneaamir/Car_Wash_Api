@@ -1,0 +1,98 @@
+<!-- Home Page -->
+
+<!-- Hero Section - Main banner -->
+<section class="hero">
+  <div class="hero-container">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        Professional Car Wash<br>
+        <span class="highlight">At Your Doorstep</span>
+      </h1>
+      <p class="hero-subtitle">
+        Book a professional car wash online. We come to you — home, office, anywhere!
+      </p>
+      <div class="hero-buttons">
+        <!-- routerLink = Angular routing - page reload nahi hoga -->
+        <a routerLink="/register" class="btn btn-primary">Book Now</a>
+        <a routerLink="/services" class="btn btn-secondary">View Services</a>
+      </div>
+    </div>
+    <div class="hero-image">
+      <div class="car-icon">🚗💦</div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+  <div class="container">
+    <div class="stats-grid">
+      <!-- @for = Angular 17+ ka new loop syntax -->
+      <!-- track stat.number = Angular ko batao ki kaunsi item unique hai (performance ke liye) -->
+      @for (stat of stats; track stat.number) {
+        <div class="stat-card">
+          <div class="stat-number">{{ stat.number }}</div>
+          <div class="stat-label">{{ stat.label }}</div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Features/Services Section -->
+<section class="features-section">
+  <div class="container">
+    <h2 class="section-title">Our Services</h2>
+    <p class="section-subtitle">Choose from our range of professional car wash services</p>
+
+    <div class="features-grid">
+      <!-- @for loop - features array se ek ek item nikalo -->
+      @for (feature of features; track feature.title) {
+        <div class="feature-card card">
+          <div class="feature-icon">{{ feature.icon }}</div>
+          <h3 class="feature-title">{{ feature.title }}</h3>
+          <p class="feature-desc">{{ feature.description }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="how-it-works">
+  <div class="container">
+    <h2 class="section-title">How It Works</h2>
+    <p class="section-subtitle">Simple 3 steps to get your car washed</p>
+
+    <div class="steps-grid">
+      <div class="step">
+        <div class="step-number">1</div>
+        <h3>Register & Login</h3>
+        <p>Create your account and add your car details</p>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <h3>Book a Service</h3>
+        <p>Choose a service plan and pick a time slot</p>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <h3>Sit Back & Relax</h3>
+        <p>Our washer comes to you and cleans your car</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-box card">
+      <h2>Ready to get your car cleaned?</h2>
+      <p>Join hundreds of satisfied customers. Book your first wash today!</p>
+      <a routerLink="/register" class="btn btn-primary">Get Started - It's Free</a>
+    </div>
+  </div>
+</section>

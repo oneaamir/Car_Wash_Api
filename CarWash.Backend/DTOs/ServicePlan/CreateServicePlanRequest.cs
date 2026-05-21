@@ -9,7 +9,7 @@ public class CreateServicePlanRequest
 
     [Required]
     public string Description { get; set; } = string.Empty;
-
+//price zero ya negative nahi ho sakta
     [Range(0.01, double.MaxValue)]
     public decimal Price { get; set; }
 }
