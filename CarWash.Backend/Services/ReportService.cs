@@ -37,19 +37,31 @@ public class ReportService : IReportService
     public async Task<RevenueReportResponse> GetRevenueReportAsync(ReportFilterRequest request)
     {
         var payments = await _paymentRepository.GetAllAsync();
-        var filteredPayments = payments
-            .Where(payment => IsWithinRange(payment.CreatedAt, request.DateFrom, request.DateTo))
+
+        // Attempts = payments submitted (created) in this period (regardless of final status)
+        var submittedPayments = payments
+            .Where(p => IsWithinRange(p.CreatedAt, request.DateFrom, request.DateTo))
             .ToList();
 
-        var successPayments = filteredPayments
-            .Where(payment => payment.PaymentStatus.Equals("Success", StringComparison.OrdinalIgnoreCase))
+        // Revenue = payments confirmed (UpdatedAt) as Success in this period
+        // A payment created last month but marked Success this month counts toward this month's revenue
+        var successPayments = payments
+            .Where(p => p.PaymentStatus.Equals("Success", StringComparison.OrdinalIgnoreCase)
+                     && p.UpdatedAt.HasValue
+                     && IsWithinRange(p.UpdatedAt.Value, request.DateFrom, request.DateTo))
             .ToList();
 
-        var totalPaymentAttempts = filteredPayments.Count;
-        var pendingPayments = filteredPayments.Count(p => p.PaymentStatus.Equals("Pending", StringComparison.OrdinalIgnoreCase));
-        var failedPayments  = filteredPayments.Count(p => p.PaymentStatus.Equals("Failed",  StringComparison.OrdinalIgnoreCase));
+        // Failed = payments marked Failed in this period
+        var failedInPeriod = payments
+            .Where(p => p.PaymentStatus.Equals("Failed", StringComparison.OrdinalIgnoreCase)
+                     && p.UpdatedAt.HasValue
+                     && IsWithinRange(p.UpdatedAt.Value, request.DateFrom, request.DateTo))
+            .Count();
+
+        var totalPaymentAttempts = submittedPayments.Count;
+        var pendingPayments    = submittedPayments.Count(p => p.PaymentStatus.Equals("Pending", StringComparison.OrdinalIgnoreCase));
         var successfulPayments = successPayments.Count;
-        var totalRevenue = successPayments.Sum(p => p.Amount);
+        var totalRevenue       = successPayments.Sum(p => p.Amount);
         var averagePaymentAmount = successfulPayments == 0 ? 0 : Math.Round(totalRevenue / successfulPayments, 2);
 
         var revenueByMethod = successPayments
@@ -68,7 +80,7 @@ public class ReportService : IReportService
             TotalPaymentAttempts = totalPaymentAttempts,
             PendingPayments      = pendingPayments,
             SuccessfulPayments   = successfulPayments,
-            FailedPayments       = failedPayments,
+            FailedPayments       = failedInPeriod,
             TotalRevenue         = totalRevenue,
             AveragePaymentAmount = averagePaymentAmount,
             RevenueByMethod      = revenueByMethod,
