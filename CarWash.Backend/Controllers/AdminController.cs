@@ -70,6 +70,14 @@ public class AdminController : ControllerBase
         return Ok(result.Response);
     }
 
+    [HttpGet("payments")]
+    public async Task<ActionResult<List<PaymentResponse>>> GetAllPayments()
+    {
+        var payments = await _adminService.GetAllPaymentsAsync();
+
+        return Ok(payments);
+    }
+
     [HttpPut("payments/{id}/status")]
     public async Task<ActionResult<PaymentResponse>> UpdatePaymentStatus(int id, UpdatePaymentStatusRequest request)
     {

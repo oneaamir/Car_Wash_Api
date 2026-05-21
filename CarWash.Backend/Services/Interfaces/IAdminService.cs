@@ -9,6 +9,8 @@ public interface IAdminService
 
     Task<List<AdminBookingResponse>> GetBookingsAsync();
 
+    Task<List<PaymentResponse>> GetAllPaymentsAsync();
+
     Task<AdminServiceResult<AdminBookingResponse>> AssignWasherAsync(int id, AssignWasherRequest request);
 
     Task<AdminServiceResult<AdminBookingResponse>> UpdateBookingStatusAsync(int id, UpdateBookingStatusRequest request);

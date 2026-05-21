@@ -74,6 +74,15 @@ public class AdminService : IAdminService
             .ToList();
     }
 
+    public async Task<List<PaymentResponse>> GetAllPaymentsAsync()
+    {
+        var payments = await _paymentRepository.GetAllAsync();
+
+        return payments
+            .Select(payment => MapPaymentToResponse(payment, "Payments fetched successfully."))
+            .ToList();
+    }
+
     public async Task<List<AdminBookingResponse>> GetBookingsAsync()
     {
         var bookings = await _bookingRepository.GetAllAsync();
@@ -313,6 +322,8 @@ public class AdminService : IAdminService
             PaymentStatus = payment.PaymentStatus,
             TransactionRef = payment.TransactionRef,
             PaymentMethod = payment.PaymentMethod,
+            CustomerName = payment.Booking?.User?.FullName ?? string.Empty,
+            CustomerEmail = payment.Booking?.User?.Email ?? string.Empty,
             Message = message
         };
     }

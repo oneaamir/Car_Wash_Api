@@ -5,6 +5,8 @@ export interface Payment {
   paymentStatus: string;
   transactionRef: string;
   paymentMethod: string;
+  customerName: string;
+  customerEmail: string;
   message: string;
 }
 

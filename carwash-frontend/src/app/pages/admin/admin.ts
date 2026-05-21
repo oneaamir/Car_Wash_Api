@@ -2,9 +2,10 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../core/services/admin.service';
 import { AdminBooking, AdminUser, PromoCode, BookingReport, RevenueReport } from '../../models/admin.models';
+import { Payment } from '../../models/payment.models';
 import { ServicePlan, AddOn } from '../../models/services.models';
 
-type AdminTab = 'bookings' | 'users' | 'services' | 'promos' | 'reports';
+type AdminTab = 'bookings' | 'users' | 'payments' | 'services' | 'promos' | 'reports';
 
 @Component({
   selector: 'app-admin',
@@ -67,6 +68,17 @@ export class AdminComponent implements OnInit {
   promoFormError  = signal('');
   discountTypes   = ['Percentage', 'Fixed'];
 
+  // ---- Payments ----
+  allPayments       = signal<Payment[]>([]);
+  isLoadingPayments = signal(false);
+  paymentsError     = signal('');
+  paymentStatusFilter = signal('All');
+  updatingPaymentId   = signal<number | null>(null);
+  isUpdatingPayment   = signal(false);
+  updatePaymentError  = signal('');
+  paymentStatusFilters = ['All', 'Pending', 'Success', 'Failed'];
+  private paymentsLoaded = false;
+
   // ---- Reports ----
   reportFilter    = { dateFrom: '', dateTo: '' };
   bookingReport   = signal<BookingReport | null>(null);
@@ -84,8 +96,9 @@ export class AdminComponent implements OnInit {
     this.activeTab.set(tab);
     this.closeAssign();
     this.closeUpdate();
-    if (tab === 'services' && !this.servicesLoaded) this.loadServices();
-    if (tab === 'promos'   && !this.promosLoaded)   this.loadPromoCodes();
+    if (tab === 'services'  && !this.servicesLoaded)  this.loadServices();
+    if (tab === 'promos'    && !this.promosLoaded)    this.loadPromoCodes();
+    if (tab === 'payments'  && !this.paymentsLoaded)  this.loadPayments();
   }
 
   // ========== Bookings ==========
@@ -344,6 +357,63 @@ export class AdminComponent implements OnInit {
       next: () => { this.allPromoCodes.update(list => list.filter(p => p.id !== promo.id)); this.showSuccess('Promo code deleted.'); },
       error: (err) => { this.promosError.set(err.error?.message || err.error || 'Failed to delete.'); }
     });
+  }
+
+  // ========== Payments ==========
+  loadPayments(): void {
+    this.isLoadingPayments.set(true);
+    this.paymentsLoaded = true;
+    this.adminService.getAllPayments().subscribe({
+      next: (data) => { this.allPayments.set(data); this.isLoadingPayments.set(false); },
+      error: () => { this.paymentsError.set('Failed to load payments.'); this.isLoadingPayments.set(false); }
+    });
+  }
+
+  get filteredPayments(): Payment[] {
+    const f = this.paymentStatusFilter();
+    return f === 'All' ? this.allPayments() : this.allPayments().filter(p => p.paymentStatus === f);
+  }
+
+  getNextPaymentStatuses(current: string): string[] {
+    switch (current.toLowerCase()) {
+      case 'pending': return ['Success', 'Failed'];
+      case 'failed':  return ['Success'];
+      default:        return [];
+    }
+  }
+
+  openUpdatePayment(paymentId: number): void {
+    this.updatingPaymentId.set(paymentId);
+    this.updatePaymentError.set('');
+  }
+
+  closeUpdatePayment(): void {
+    this.updatingPaymentId.set(null);
+    this.updatePaymentError.set('');
+  }
+
+  submitPaymentStatus(paymentId: number, newStatus: string): void {
+    this.isUpdatingPayment.set(true);
+    this.adminService.updatePaymentStatus(paymentId, { paymentStatus: newStatus }).subscribe({
+      next: (updated) => {
+        this.allPayments.update(list => list.map(p => p.id === paymentId ? updated : p));
+        this.showSuccess(`Payment #${paymentId} marked as ${newStatus}.`);
+        this.isUpdatingPayment.set(false);
+        this.closeUpdatePayment();
+      },
+      error: (err) => {
+        this.updatePaymentError.set(err.error?.message || err.error || 'Failed to update payment.');
+        this.isUpdatingPayment.set(false);
+      }
+    });
+  }
+
+  getPaymentStatusClass(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'success': return 'badge-completed';
+      case 'failed':  return 'badge-cancelled';
+      default:        return 'badge-pending';
+    }
   }
 
   // ========== Reports ==========

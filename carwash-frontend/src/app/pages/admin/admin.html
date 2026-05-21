@@ -25,6 +25,9 @@
       <button class="tab-btn" [class.active]="activeTab() === 'users'" (click)="setTab('users')">
         Users <span class="tab-count">{{ allUsers().length }}</span>
       </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'payments'" (click)="setTab('payments')">
+        Payments <span class="tab-count">{{ allPayments().length }}</span>
+      </button>
       <button class="tab-btn" [class.active]="activeTab() === 'services'" (click)="setTab('services')">
         Services
       </button>
@@ -206,6 +209,102 @@
                   @if (user.isActive) { <span class="active-badge">Active</span> }
                   @else { <span class="inactive-badge">Inactive</span> }
                 </span>
+              </div>
+            }
+          </div>
+        }
+      }
+    }
+
+    <!-- ====== PAYMENTS TAB ====== -->
+    @if (activeTab() === 'payments') {
+
+      @if (paymentsError()) { <div class="error-message">{{ paymentsError() }}</div> }
+
+      <div class="filter-chips">
+        @for (s of paymentStatusFilters; track s) {
+          <button class="chip" [class.active]="paymentStatusFilter() === s" (click)="paymentStatusFilter.set(s)">{{ s }}</button>
+        }
+      </div>
+
+      @if (isLoadingPayments()) {
+        <div class="loading-list">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+      }
+
+      @if (!isLoadingPayments()) {
+        @if (filteredPayments.length === 0) {
+          <div class="empty-state">
+            <span class="empty-icon">💳</span>
+            <h3>No payments found</h3>
+            <p>No payments match the selected filter.</p>
+          </div>
+        } @else {
+          <div class="payments-list">
+            @for (payment of filteredPayments; track payment.id) {
+              <div class="payment-card">
+
+                <div class="card-header">
+                  <div class="card-header-left">
+                    <span class="booking-id">Payment #{{ payment.id }}</span>
+                    <span class="status-badge" [class]="getPaymentStatusClass(payment.paymentStatus)">
+                      {{ payment.paymentStatus }}
+                    </span>
+                  </div>
+                  <span class="booking-amount">Rs. {{ payment.amount }}</span>
+                </div>
+
+                <div class="card-body">
+                  <div class="info-row">
+                    <span class="info-label">Customer</span>
+                    <span class="info-value">
+                      @if (payment.customerName) {
+                        {{ payment.customerName }} <small>({{ payment.customerEmail }})</small>
+                      } @else {
+                        <em class="not-assigned">—</em>
+                      }
+                    </span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Booking ID</span>
+                    <span class="info-value">#{{ payment.bookingId }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Method</span>
+                    <span class="info-value">{{ payment.paymentMethod || '—' }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Transaction Ref</span>
+                    <span class="info-value">{{ payment.transactionRef || '—' }}</span>
+                  </div>
+                </div>
+
+                @if (getNextPaymentStatuses(payment.paymentStatus).length > 0) {
+                  <div class="card-actions">
+                    <button class="btn-action btn-status"
+                      (click)="updatingPaymentId() === payment.id ? closeUpdatePayment() : openUpdatePayment(payment.id)">
+                      {{ updatingPaymentId() === payment.id ? '✕ Cancel' : '🔄 Update Status' }}
+                    </button>
+                  </div>
+                }
+
+                @if (updatingPaymentId() === payment.id) {
+                  <div class="inline-panel">
+                    <label class="inline-label">Mark Payment As:</label>
+                    @if (updatePaymentError()) { <div class="inline-error">{{ updatePaymentError() }}</div> }
+                    <div class="status-btns">
+                      @for (s of getNextPaymentStatuses(payment.paymentStatus); track s) {
+                        <button class="btn-next-status" [class]="'btn-next-pay-' + s.toLowerCase()"
+                          (click)="submitPaymentStatus(payment.id, s)" [disabled]="isUpdatingPayment()">
+                          {{ s }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+
               </div>
             }
           </div>

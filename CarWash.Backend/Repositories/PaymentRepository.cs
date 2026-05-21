@@ -21,7 +21,10 @@ public class PaymentRepository : IPaymentRepository
 
     public async Task<List<Payment>> GetAllAsync()
     {
-        return await _context.Payments.ToListAsync();
+        return await _context.Payments
+            .Include(p => p.Booking)
+            .ThenInclude(b => b!.User)
+            .ToListAsync();
     }
 
     public async Task<Payment?> GetByIdAsync(int id)

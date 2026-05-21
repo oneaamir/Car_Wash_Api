@@ -35,6 +35,10 @@ export class AdminService {
     return this.http.put<AdminBooking>(`${this.apiUrl}/admin/bookings/${bookingId}/status`, data);
   }
 
+  getAllPayments(): Observable<Payment[]> {
+    return this.http.get<Payment[]>(`${this.apiUrl}/admin/payments`);
+  }
+
   updatePaymentStatus(paymentId: number, data: UpdatePaymentStatusRequest): Observable<Payment> {
     return this.http.put<Payment>(`${this.apiUrl}/admin/payments/${paymentId}/status`, data);
   }

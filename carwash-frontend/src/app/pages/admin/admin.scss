@@ -430,6 +430,25 @@
   p  { color: #6b7280; }
 }
 
+// Payments List
+.payments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 40px;
+}
+
+.payment-card {
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  overflow: hidden;
+  border: 1px solid #f3f4f6;
+}
+
+.btn-next-pay-success { background: #dcfce7; color: #15803d; }
+.btn-next-pay-failed  { background: #fee2e2; color: #dc2626; }
+
 // ===== SHARED SECTION BLOCK =====
 .section-block {
   background: white;
