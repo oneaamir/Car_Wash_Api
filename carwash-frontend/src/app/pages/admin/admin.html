@@ -4,7 +4,7 @@
   <div class="page-header">
     <div class="container">
       <h1>Admin Dashboard</h1>
-      <p>Manage bookings, assign washers, and view all users</p>
+      <p>Manage bookings, users, services, promo codes, and reports</p>
     </div>
   </div>
 
@@ -19,35 +19,29 @@
 
     <!-- Tab Navigation -->
     <div class="tab-bar">
-      <button
-        class="tab-btn"
-        [class.active]="activeTab() === 'bookings'"
-        (click)="setTab('bookings')"
-      >
-        All Bookings
-        <span class="tab-count">{{ allBookings().length }}</span>
+      <button class="tab-btn" [class.active]="activeTab() === 'bookings'" (click)="setTab('bookings')">
+        Bookings <span class="tab-count">{{ allBookings().length }}</span>
       </button>
-      <button
-        class="tab-btn"
-        [class.active]="activeTab() === 'users'"
-        (click)="setTab('users')"
-      >
-        All Users
-        <span class="tab-count">{{ allUsers().length }}</span>
+      <button class="tab-btn" [class.active]="activeTab() === 'users'" (click)="setTab('users')">
+        Users <span class="tab-count">{{ allUsers().length }}</span>
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'services'" (click)="setTab('services')">
+        Services
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'promos'" (click)="setTab('promos')">
+        Promo Codes <span class="tab-count">{{ allPromoCodes().length }}</span>
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'reports'" (click)="setTab('reports')">
+        Reports
       </button>
     </div>
 
     <!-- ====== BOOKINGS TAB ====== -->
     @if (activeTab() === 'bookings') {
 
-      <!-- Status Filter Chips -->
       <div class="filter-chips">
         @for (s of statusFilters; track s) {
-          <button
-            class="chip"
-            [class.active]="statusFilter() === s"
-            (click)="setFilter(s)"
-          >{{ s }}</button>
+          <button class="chip" [class.active]="statusFilter() === s" (click)="setFilter(s)">{{ s }}</button>
         }
       </div>
 
@@ -64,31 +58,25 @@
           <div class="empty-state">
             <span class="empty-icon">📋</span>
             <h3>No bookings found</h3>
-            <p>No bookings match the selected status filter.</p>
+            <p>No bookings match the selected filter.</p>
           </div>
         } @else {
           <div class="bookings-list">
             @for (booking of filteredBookings; track booking.id) {
               <div class="booking-card">
 
-                <!-- Card Header -->
                 <div class="card-header">
                   <div class="card-header-left">
                     <span class="booking-id">Booking #{{ booking.id }}</span>
-                    <span class="status-badge" [class]="getStatusClass(booking.status)">
-                      {{ booking.status }}
-                    </span>
+                    <span class="status-badge" [class]="getStatusClass(booking.status)">{{ booking.status }}</span>
                   </div>
                   <span class="booking-amount">Rs. {{ booking.totalAmount }}</span>
                 </div>
 
-                <!-- Card Body -->
                 <div class="card-body">
                   <div class="info-row">
                     <span class="info-label">Customer</span>
-                    <span class="info-value">{{ booking.customerName }}
-                      <small>({{ booking.customerEmail }})</small>
-                    </span>
+                    <span class="info-value">{{ booking.customerName }} <small>({{ booking.customerEmail }})</small></span>
                   </div>
                   <div class="info-row">
                     <span class="info-label">Vehicle</span>
@@ -128,73 +116,49 @@
                   </div>
                 </div>
 
-                <!-- Card Actions -->
                 <div class="card-actions">
                   @if (booking.status !== 'Completed' && booking.status !== 'Cancelled') {
-                    <button
-                      class="btn-action btn-assign"
-                      (click)="assigningId() === booking.id ? closeAssign() : openAssign(booking.id, booking.assignedWasherId)"
-                    >
+                    <button class="btn-action btn-assign"
+                      (click)="assigningId() === booking.id ? closeAssign() : openAssign(booking.id, booking.assignedWasherId)">
                       {{ assigningId() === booking.id ? '✕ Cancel' : '👷 Assign Washer' }}
                     </button>
                   }
                   @if (getNextStatuses(booking.status).length > 0) {
-                    <button
-                      class="btn-action btn-status"
-                      (click)="updatingId() === booking.id ? closeUpdate() : openUpdate(booking.id)"
-                    >
+                    <button class="btn-action btn-status"
+                      (click)="updatingId() === booking.id ? closeUpdate() : openUpdate(booking.id)">
                       {{ updatingId() === booking.id ? '✕ Cancel' : '🔄 Update Status' }}
                     </button>
                   }
                 </div>
 
-                <!-- Inline Assign Washer Panel -->
                 @if (assigningId() === booking.id) {
                   <div class="inline-panel">
                     <label class="inline-label">Select Washer</label>
-                    @if (assignError()) {
-                      <div class="inline-error">{{ assignError() }}</div>
-                    }
+                    @if (assignError()) { <div class="inline-error">{{ assignError() }}</div> }
                     @if (washers.length === 0) {
                       <p class="inline-hint">No washers registered in the system.</p>
                     } @else {
-                      <select
-                        [ngModel]="assignWasherId()"
-                        (ngModelChange)="assignWasherId.set($event)"
-                        class="inline-select"
-                        name="washer-{{ booking.id }}"
-                      >
+                      <select [ngModel]="assignWasherId()" (ngModelChange)="assignWasherId.set($event)" class="inline-select" name="washer-{{ booking.id }}">
                         <option [ngValue]="0">-- Select Washer --</option>
                         @for (w of washers; track w.id) {
                           <option [ngValue]="w.id">{{ w.fullName }} ({{ w.email }})</option>
                         }
                       </select>
-                      <button
-                        class="btn-save"
-                        (click)="submitAssign(booking.id)"
-                        [disabled]="isAssigning()"
-                      >
+                      <button class="btn-save" (click)="submitAssign(booking.id)" [disabled]="isAssigning()">
                         {{ isAssigning() ? 'Saving...' : 'Save Assignment' }}
                       </button>
                     }
                   </div>
                 }
 
-                <!-- Inline Status Update Panel -->
                 @if (updatingId() === booking.id) {
                   <div class="inline-panel">
                     <label class="inline-label">Change Status To:</label>
-                    @if (updateError()) {
-                      <div class="inline-error">{{ updateError() }}</div>
-                    }
+                    @if (updateError()) { <div class="inline-error">{{ updateError() }}</div> }
                     <div class="status-btns">
                       @for (s of getNextStatuses(booking.status); track s) {
-                        <button
-                          class="btn-next-status"
-                          [class]="'btn-next-' + s.toLowerCase()"
-                          (click)="submitStatus(booking.id, s)"
-                          [disabled]="isUpdating()"
-                        >
+                        <button class="btn-next-status" [class]="'btn-next-' + s.toLowerCase()"
+                          (click)="submitStatus(booking.id, s)" [disabled]="isUpdating()">
                           {{ s }}
                         </button>
                       }
@@ -211,14 +175,12 @@
 
     <!-- ====== USERS TAB ====== -->
     @if (activeTab() === 'users') {
-
       @if (isLoadingUsers()) {
         <div class="loading-list">
           <div class="skeleton-card"></div>
           <div class="skeleton-card"></div>
         </div>
       }
-
       @if (!isLoadingUsers()) {
         @if (allUsers().length === 0) {
           <div class="empty-state">
@@ -239,21 +201,345 @@
                 <span class="user-name">{{ user.fullName }}</span>
                 <span class="user-email">{{ user.email }}</span>
                 <span>{{ user.phone || '—' }}</span>
+                <span><span class="role-badge" [class]="getRoleClass(user.role)">{{ user.role }}</span></span>
                 <span>
-                  <span class="role-badge" [class]="getRoleClass(user.role)">{{ user.role }}</span>
-                </span>
-                <span>
-                  @if (user.isActive) {
-                    <span class="active-badge">Active</span>
-                  } @else {
-                    <span class="inactive-badge">Inactive</span>
-                  }
+                  @if (user.isActive) { <span class="active-badge">Active</span> }
+                  @else { <span class="inactive-badge">Inactive</span> }
                 </span>
               </div>
             }
           </div>
         }
       }
+    }
+
+    <!-- ====== SERVICES TAB ====== -->
+    @if (activeTab() === 'services') {
+
+      @if (servicesError()) { <div class="error-message">{{ servicesError() }}</div> }
+
+      @if (isLoadingServices()) {
+        <div class="loading-list">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+      }
+
+      @if (!isLoadingServices()) {
+
+        <!-- Service Plans Section -->
+        <div class="section-block">
+          <div class="section-header">
+            <h2 class="section-title">Service Plans</h2>
+            @if (!showPlanForm()) {
+              <button class="btn-add" (click)="openAddPlan()">+ Add Plan</button>
+            }
+          </div>
+
+          @if (showPlanForm()) {
+            <div class="crud-form">
+              <h3>{{ editingPlanId() ? 'Edit Service Plan' : 'New Service Plan' }}</h3>
+              @if (planFormError()) { <div class="inline-error">{{ planFormError() }}</div> }
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Name *</label>
+                  <input type="text" [(ngModel)]="planFormData.name" placeholder="e.g. Basic Wash" />
+                </div>
+                <div class="form-group">
+                  <label>Price (Rs.) *</label>
+                  <input type="number" [(ngModel)]="planFormData.price" min="1" placeholder="0" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Description *</label>
+                <textarea [(ngModel)]="planFormData.description" rows="2" placeholder="Describe the service plan..."></textarea>
+              </div>
+              <div class="form-actions-row">
+                <button class="btn-save" (click)="submitPlanForm()" [disabled]="isPlanSaving()">
+                  {{ isPlanSaving() ? 'Saving...' : (editingPlanId() ? 'Update Plan' : 'Create Plan') }}
+                </button>
+                <button class="btn-cancel-sm" (click)="closePlanForm()">Cancel</button>
+              </div>
+            </div>
+          }
+
+          @if (allPlans().length === 0) {
+            <p class="empty-text">No service plans yet. Click "+ Add Plan" to create one.</p>
+          } @else {
+            <div class="crud-table">
+              <div class="crud-table-header">
+                <span>Name</span>
+                <span>Description</span>
+                <span>Price</span>
+                <span>Status</span>
+                <span>Actions</span>
+              </div>
+              @for (plan of allPlans(); track plan.id) {
+                <div class="crud-table-row">
+                  <span class="crud-name">{{ plan.name }}</span>
+                  <span class="crud-desc">{{ plan.description }}</span>
+                  <span class="crud-price">Rs. {{ plan.price }}</span>
+                  <span>
+                    @if (plan.isActive) { <span class="active-badge">Active</span> }
+                    @else { <span class="inactive-badge">Inactive</span> }
+                  </span>
+                  <span class="crud-actions">
+                    <button class="btn-edit" (click)="openEditPlan(plan)">Edit</button>
+                    <button class="btn-delete" (click)="deletePlan(plan)">Delete</button>
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Add-Ons Section -->
+        <div class="section-block">
+          <div class="section-header">
+            <h2 class="section-title">Add-Ons</h2>
+            @if (!showAddonForm()) {
+              <button class="btn-add" (click)="openAddAddon()">+ Add Add-On</button>
+            }
+          </div>
+
+          @if (showAddonForm()) {
+            <div class="crud-form">
+              <h3>{{ editingAddonId() ? 'Edit Add-On' : 'New Add-On' }}</h3>
+              @if (addonFormError()) { <div class="inline-error">{{ addonFormError() }}</div> }
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Name *</label>
+                  <input type="text" [(ngModel)]="addonFormData.name" placeholder="e.g. Interior Vacuum" />
+                </div>
+                <div class="form-group">
+                  <label>Price (Rs.)</label>
+                  <input type="number" [(ngModel)]="addonFormData.price" min="0" placeholder="0" />
+                </div>
+              </div>
+              <div class="form-actions-row">
+                <button class="btn-save" (click)="submitAddonForm()" [disabled]="isAddonSaving()">
+                  {{ isAddonSaving() ? 'Saving...' : (editingAddonId() ? 'Update Add-On' : 'Create Add-On') }}
+                </button>
+                <button class="btn-cancel-sm" (click)="closeAddonForm()">Cancel</button>
+              </div>
+            </div>
+          }
+
+          @if (allAddOns().length === 0) {
+            <p class="empty-text">No add-ons yet. Click "+ Add Add-On" to create one.</p>
+          } @else {
+            <div class="crud-table">
+              <div class="crud-table-header">
+                <span>Name</span>
+                <span>Price</span>
+                <span>Status</span>
+                <span>Actions</span>
+              </div>
+              @for (addon of allAddOns(); track addon.id) {
+                <div class="crud-table-row">
+                  <span class="crud-name">{{ addon.name }}</span>
+                  <span class="crud-price">Rs. {{ addon.price }}</span>
+                  <span>
+                    @if (addon.isActive) { <span class="active-badge">Active</span> }
+                    @else { <span class="inactive-badge">Inactive</span> }
+                  </span>
+                  <span class="crud-actions">
+                    <button class="btn-edit" (click)="openEditAddon(addon)">Edit</button>
+                    <button class="btn-delete" (click)="deleteAddon(addon)">Delete</button>
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+      }
+    }
+
+    <!-- ====== PROMO CODES TAB ====== -->
+    @if (activeTab() === 'promos') {
+
+      @if (promosError()) { <div class="error-message">{{ promosError() }}</div> }
+
+      <div class="section-block">
+        <div class="section-header">
+          <h2 class="section-title">Promo Codes</h2>
+          @if (!showPromoForm()) {
+            <button class="btn-add" (click)="openAddPromo()">+ Add Promo Code</button>
+          }
+        </div>
+
+        @if (showPromoForm()) {
+          <div class="crud-form">
+            <h3>{{ editingPromoId() ? 'Edit Promo Code' : 'New Promo Code' }}</h3>
+            @if (promoFormError()) { <div class="inline-error">{{ promoFormError() }}</div> }
+            <div class="form-row">
+              <div class="form-group">
+                <label>Code *</label>
+                <input type="text" [(ngModel)]="promoFormData.code" placeholder="e.g. SAVE20" style="text-transform:uppercase" />
+              </div>
+              <div class="form-group">
+                <label>Discount Type *</label>
+                <select [(ngModel)]="promoFormData.discountType">
+                  @for (type of discountTypes; track type) {
+                    <option [value]="type">{{ type }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Discount Value *</label>
+                <input type="number" [(ngModel)]="promoFormData.discountValue" min="0.01" placeholder="e.g. 20" />
+              </div>
+              <div class="form-group">
+                <label>Expiry Date *</label>
+                <input type="date" [(ngModel)]="promoFormData.expiryDate" />
+              </div>
+            </div>
+            <div class="form-actions-row">
+              <button class="btn-save" (click)="submitPromoForm()" [disabled]="isPromoSaving()">
+                {{ isPromoSaving() ? 'Saving...' : (editingPromoId() ? 'Update Promo' : 'Create Promo') }}
+              </button>
+              <button class="btn-cancel-sm" (click)="closePromoForm()">Cancel</button>
+            </div>
+          </div>
+        }
+
+        @if (isLoadingPromos()) {
+          <div class="loading-list">
+            <div class="skeleton-card"></div>
+          </div>
+        }
+
+        @if (!isLoadingPromos()) {
+          @if (allPromoCodes().length === 0) {
+            <p class="empty-text">No promo codes yet. Click "+ Add Promo Code" to create one.</p>
+          } @else {
+            <div class="crud-table">
+              <div class="crud-table-header">
+                <span>Code</span>
+                <span>Type</span>
+                <span>Value</span>
+                <span>Expiry</span>
+                <span>Status</span>
+                <span>Actions</span>
+              </div>
+              @for (promo of allPromoCodes(); track promo.id) {
+                <div class="crud-table-row">
+                  <span class="promo-code-badge">{{ promo.code }}</span>
+                  <span>{{ promo.discountType }}</span>
+                  <span class="crud-price">
+                    @if (promo.discountType === 'Percentage') { {{ promo.discountValue }}% }
+                    @else { Rs. {{ promo.discountValue }} }
+                  </span>
+                  <span>{{ formatDate(promo.expiryDate) }}</span>
+                  <span>
+                    @if (promo.isActive) { <span class="active-badge">Active</span> }
+                    @else { <span class="inactive-badge">Expired</span> }
+                  </span>
+                  <span class="crud-actions">
+                    <button class="btn-edit" (click)="openEditPromo(promo)">Edit</button>
+                    <button class="btn-delete" (click)="deletePromo(promo)">Delete</button>
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        }
+      </div>
+    }
+
+    <!-- ====== REPORTS TAB ====== -->
+    @if (activeTab() === 'reports') {
+
+      <div class="section-block">
+        <h2 class="section-title">Generate Reports</h2>
+
+        <!-- Date Filter -->
+        <div class="report-filter">
+          <div class="form-group">
+            <label>From Date</label>
+            <input type="date" [(ngModel)]="reportFilter.dateFrom" />
+          </div>
+          <div class="form-group">
+            <label>To Date</label>
+            <input type="date" [(ngModel)]="reportFilter.dateTo" />
+          </div>
+          <button class="btn-report" (click)="loadReports()" [disabled]="isLoadingReport()">
+            {{ isLoadingReport() ? 'Loading...' : 'Generate Report' }}
+          </button>
+        </div>
+
+        @if (reportError()) { <div class="error-message">{{ reportError() }}</div> }
+
+        @if (bookingReport()) {
+          @let br = bookingReport()!;
+          <div class="report-section">
+            <h3 class="report-heading">Booking Report</h3>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-value">{{ br.totalBookings }}</div>
+                <div class="stat-label">Total Bookings</div>
+              </div>
+              <div class="stat-card stat-pending">
+                <div class="stat-value">{{ br.pendingBookings }}</div>
+                <div class="stat-label">Pending</div>
+              </div>
+              <div class="stat-card stat-confirmed">
+                <div class="stat-value">{{ br.confirmedBookings }}</div>
+                <div class="stat-label">Confirmed</div>
+              </div>
+              <div class="stat-card stat-completed">
+                <div class="stat-value">{{ br.completedBookings }}</div>
+                <div class="stat-label">Completed</div>
+              </div>
+              <div class="stat-card stat-cancelled">
+                <div class="stat-value">{{ br.cancelledBookings }}</div>
+                <div class="stat-label">Cancelled</div>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (revenueReport()) {
+          @let rr = revenueReport()!;
+          <div class="report-section">
+            <h3 class="report-heading">Revenue Report</h3>
+            <div class="stats-grid">
+              <div class="stat-card stat-revenue">
+                <div class="stat-value">Rs. {{ rr.totalRevenue }}</div>
+                <div class="stat-label">Total Revenue</div>
+              </div>
+              <div class="stat-card stat-completed">
+                <div class="stat-value">{{ rr.successfulPayments }}</div>
+                <div class="stat-label">Successful Payments</div>
+              </div>
+              <div class="stat-card stat-cancelled">
+                <div class="stat-value">{{ rr.failedPayments }}</div>
+                <div class="stat-label">Failed Payments</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">{{ rr.totalPaymentAttempts }}</div>
+                <div class="stat-label">Total Attempts</div>
+              </div>
+              <div class="stat-card stat-confirmed">
+                <div class="stat-value">Rs. {{ rr.averagePaymentAmount }}</div>
+                <div class="stat-label">Average Payment</div>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (!bookingReport() && !revenueReport() && !isLoadingReport()) {
+          <div class="empty-state">
+            <span class="empty-icon">📊</span>
+            <h3>No report generated yet</h3>
+            <p>Select a date range and click "Generate Report".</p>
+          </div>
+        }
+
+      </div>
     }
 
   </div>

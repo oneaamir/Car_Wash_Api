@@ -31,14 +31,33 @@ export interface AdminUser {
   message: string;
 }
 
-export interface AssignWasherRequest {
-  washerId: number;
-}
+export interface AssignWasherRequest { washerId: number; }
+export interface UpdateBookingStatusRequest { status: string; }
+export interface UpdatePaymentStatusRequest { paymentStatus: string; }
 
-export interface UpdateBookingStatusRequest {
-  status: string;
-}
+// Service Plans
+export interface CreateServicePlanRequest { name: string; description: string; price: number; }
+export interface UpdateServicePlanRequest { name: string; description: string; price: number; }
 
-export interface UpdatePaymentStatusRequest {
-  paymentStatus: string;
+// Add-Ons
+export interface CreateAddOnRequest { name: string; price: number; }
+export interface UpdateAddOnRequest { name: string; price: number; }
+
+// Promo Codes
+export interface PromoCode {
+  id: number; code: string; discountType: string;
+  discountValue: number; expiryDate: string; isActive: boolean; message: string;
+}
+export interface CreatePromoCodeRequest { code: string; discountType: string; discountValue: number; expiryDate: string; }
+export interface UpdatePromoCodeRequest { code: string; discountType: string; discountValue: number; expiryDate: string; }
+
+// Reports
+export interface ReportFilter { dateFrom?: string; dateTo?: string; }
+export interface BookingReport {
+  totalBookings: number; pendingBookings: number; confirmedBookings: number;
+  completedBookings: number; cancelledBookings: number; message: string;
+}
+export interface RevenueReport {
+  totalPaymentAttempts: number; successfulPayments: number; failedPayments: number;
+  totalRevenue: number; averagePaymentAmount: number; message: string;
 }
