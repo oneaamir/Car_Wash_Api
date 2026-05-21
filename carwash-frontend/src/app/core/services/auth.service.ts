@@ -12,16 +12,16 @@ export class AuthService {
 
   // PLATFORM_ID = Angular ko pata hota hai ki app browser mein hai ya server pe
   // isPlatformBrowser() = true agar browser hai, false agar server (SSR) hai
-  // SSR ke waqt localStorage available nahi hota - isliye check karna zaroori hai
+  // SSR ke waqt sessionStorage available nahi hota - isliye check karna zaroori hai
   private platformId = inject(PLATFORM_ID);
   private http = inject(HttpClient);
 
   currentUser = signal<AuthResponse | null>(this.loadUserFromStorage());
 
   private loadUserFromStorage(): AuthResponse | null {
-    // SSR check: server pe localStorage nahi hota
+    // SSR check: server pe sessionStorage nahi hota
     if (!isPlatformBrowser(this.platformId)) return null;
-    const saved = localStorage.getItem('carwash_user');
+    const saved = sessionStorage.getItem('carwash_user');
     return saved ? JSON.parse(saved) : null;
   }
 
@@ -29,8 +29,8 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, data).pipe(
       tap(response => {
         if (isPlatformBrowser(this.platformId)) {
-          localStorage.setItem('carwash_token', response.token);
-          localStorage.setItem('carwash_user', JSON.stringify(response));
+          sessionStorage.setItem('carwash_token', response.token);
+          sessionStorage.setItem('carwash_user', JSON.stringify(response));
         }
         this.currentUser.set(response);
       })
@@ -47,15 +47,15 @@ export class AuthService {
 
   logout(): void {
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem('carwash_token');
-      localStorage.removeItem('carwash_user');
+      sessionStorage.removeItem('carwash_token');
+      sessionStorage.removeItem('carwash_user');
     }
     this.currentUser.set(null);
   }
 
   getToken(): string | null {
     if (!isPlatformBrowser(this.platformId)) return null;
-    return localStorage.getItem('carwash_token');
+    return sessionStorage.getItem('carwash_token');
   }
 
   isLoggedIn(): boolean {

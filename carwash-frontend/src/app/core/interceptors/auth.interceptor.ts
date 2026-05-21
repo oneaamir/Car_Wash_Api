@@ -5,12 +5,12 @@ import { isPlatformBrowser } from '@angular/common';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const platformId = inject(PLATFORM_ID);
 
-  // Server-side rendering mein localStorage nahi hota - check karo
+  // Server-side rendering mein sessionStorage nahi hota - check karo
   if (!isPlatformBrowser(platformId)) {
     return next(req);
   }
 
-  const token = localStorage.getItem('carwash_token');
+  const token = sessionStorage.getItem('carwash_token');
 
   if (token) {
     const authReq = req.clone({
