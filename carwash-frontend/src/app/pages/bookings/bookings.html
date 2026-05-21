@@ -212,6 +212,15 @@
       </div>
     }
 
+    <!-- Status Filter -->
+    @if (!showForm() && bookings().length > 0) {
+      <div class="filter-chips">
+        @for (s of statusFilters; track s) {
+          <button class="chip" [class.active]="statusFilter() === s" (click)="statusFilter.set(s)">{{ s }}</button>
+        }
+      </div>
+    }
+
     <!-- ====== BOOKINGS LIST ====== -->
     @if (isLoadingBookings()) {
       <div class="loading-grid">
@@ -231,9 +240,15 @@
             <button class="btn btn-primary" (click)="openForm()">+ New Booking</button>
           }
         </div>
+      } @else if (filteredBookings.length === 0) {
+        <div class="empty-state">
+          <span class="empty-icon">🔍</span>
+          <h3>No {{ statusFilter() }} bookings</h3>
+          <p>No bookings match this filter. <button class="link-btn" (click)="statusFilter.set('All')">Show all</button></p>
+        </div>
       } @else {
         <div class="bookings-list">
-          @for (booking of bookings(); track booking.id) {
+          @for (booking of filteredBookings; track booking.id) {
             <div class="booking-card">
 
               <div class="booking-header">

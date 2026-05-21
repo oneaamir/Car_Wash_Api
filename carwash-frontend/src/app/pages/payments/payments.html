@@ -138,10 +138,23 @@
         </div>
       } @else {
 
+        <div class="filter-chips">
+          @for (s of paymentFilters; track s) {
+            <button class="chip" [class.active]="paymentFilter() === s" (click)="paymentFilter.set(s)">{{ s }}</button>
+          }
+        </div>
+
+        @if (filteredPayments.length === 0) {
+          <div class="empty-state">
+            <span class="empty-icon">🔍</span>
+            <h3>No {{ paymentFilter() }} payments</h3>
+            <p>No payments match this filter. <button class="link-btn" (click)="paymentFilter.set('All')">Show all</button></p>
+          </div>
+        } @else {
         <div class="section-title">Payment History</div>
 
         <div class="payments-list">
-          @for (payment of payments(); track payment.id) {
+          @for (payment of filteredPayments; track payment.id) {
 
             @let receipt = getReceiptForPayment(payment.id);
             @let booking = getBookingById(payment.bookingId);
@@ -276,6 +289,7 @@
             </div>
           }
         </div>
+        }
 
       }
     }

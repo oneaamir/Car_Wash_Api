@@ -20,6 +20,8 @@ export class PaymentsComponent implements OnInit {
   payments  = signal<Payment[]>([]);
   receipts  = signal<Receipt[]>([]);
   myBookings = signal<Booking[]>([]);
+  paymentFilter = signal('All');
+  paymentFilters = ['All', 'Pending', 'Success', 'Failed'];
 
   isLoadingPayments = signal(true);
   isLoadingReceipts = signal(true);
@@ -65,6 +67,11 @@ export class PaymentsComponent implements OnInit {
         this.myBookings.set(data.filter(b => b.status !== 'Cancelled'));
       }
     });
+  }
+
+  get filteredPayments(): Payment[] {
+    const f = this.paymentFilter();
+    return f === 'All' ? this.payments() : this.payments().filter(p => p.paymentStatus === f);
   }
 
   // Only show bookings that don't have a payment yet

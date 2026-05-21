@@ -23,6 +23,8 @@ export class BookingsComponent implements OnInit {
   bookings = signal<Booking[]>([]);
   isLoadingBookings = signal(true);
   listError = signal('');
+  statusFilter = signal('All');
+  statusFilters = ['All', 'Pending', 'Confirmed', 'InProgress', 'Completed', 'Cancelled'];
 
   myCars = signal<Car[]>([]);
   plans = signal<ServicePlan[]>([]);
@@ -160,6 +162,11 @@ export class BookingsComponent implements OnInit {
         this.listError.set('Unable to cancel booking. Please try again.');
       }
     });
+  }
+
+  get filteredBookings(): Booking[] {
+    const f = this.statusFilter();
+    return f === 'All' ? this.bookings() : this.bookings().filter(b => b.status === f);
   }
 
   canCancel(status: string): boolean {
