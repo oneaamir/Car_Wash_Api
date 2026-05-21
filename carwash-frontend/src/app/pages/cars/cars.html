@@ -112,13 +112,13 @@
             </div>
 
             <div class="form-group full-width">
-              <label for="imageUrl">Image URL <span class="optional">(optional)</span></label>
+              <label for="imageUrl">Car Image URL <span class="optional">(optional — leave blank to use default icon)</span></label>
               <input
-                type="url"
+                type="text"
                 id="imageUrl"
                 name="imageUrl"
                 [(ngModel)]="formData.imageUrl"
-                placeholder="https://example.com/car.jpg"
+                placeholder="Paste image URL here, or leave blank"
               />
             </div>
 

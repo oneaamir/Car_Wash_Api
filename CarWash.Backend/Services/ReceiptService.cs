@@ -124,6 +124,12 @@ public class ReceiptService : IReceiptService
         };
     }
 
+    public async Task<List<ReceiptResponse>> GetMyReceiptsAsync(int userId)
+    {
+        var receipts = await _receiptRepository.GetByUserIdAsync(userId);
+        return receipts.Select(r => MapToResponse(r, string.Empty)).ToList();
+    }
+
     private static ReceiptResponse MapToResponse(Receipt receipt, string message)
     {
         return new ReceiptResponse

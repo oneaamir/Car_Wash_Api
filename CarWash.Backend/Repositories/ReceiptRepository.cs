@@ -25,6 +25,14 @@ public class ReceiptRepository : IReceiptRepository
             .FirstOrDefaultAsync(receipt => receipt.BookingId == bookingId);
     }
 
+    public async Task<List<Receipt>> GetByUserIdAsync(int userId)
+    {
+        return await _context.Receipts
+            .Include(r => r.Booking)
+            .Where(r => r.Booking != null && r.Booking.UserId == userId)
+            .ToListAsync();
+    }
+
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();

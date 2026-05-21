@@ -8,5 +8,7 @@ public interface IReceiptRepository
 
     Task<Receipt?> GetByBookingIdAsync(int bookingId);
 
+    Task<List<Receipt>> GetByUserIdAsync(int userId);
+
     Task SaveChangesAsync();
 }

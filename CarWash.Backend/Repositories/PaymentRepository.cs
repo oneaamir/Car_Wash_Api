@@ -36,6 +36,14 @@ public class PaymentRepository : IPaymentRepository
             .FirstOrDefaultAsync(payment => payment.BookingId == bookingId);
     }
 
+    public async Task<List<Payment>> GetByUserIdAsync(int userId)
+    {
+        return await _context.Payments
+            .Include(p => p.Booking)
+            .Where(p => p.Booking != null && p.Booking.UserId == userId)
+            .ToListAsync();
+    }
+
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();

@@ -12,5 +12,7 @@ public interface IPaymentRepository
 
     Task<Payment?> GetByBookingIdAsync(int bookingId);
 
+    Task<List<Payment>> GetByUserIdAsync(int userId);
+
     Task SaveChangesAsync();
 }

@@ -18,6 +18,22 @@ public class ReceiptsController : ControllerBase
         _receiptService = receiptService;
     }
 
+    [HttpGet("my")]
+    public async Task<ActionResult<List<ReceiptResponse>>> GetMyReceipts()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            return Unauthorized("Invalid token.");
+        }
+
+        var userId = int.Parse(userIdClaim);
+        var receipts = await _receiptService.GetMyReceiptsAsync(userId);
+
+        return Ok(receipts);
+    }
+
     [HttpPost("generate/{bookingId}")]
     public async Task<ActionResult<ReceiptResponse>> GenerateReceipt(int bookingId)
     {

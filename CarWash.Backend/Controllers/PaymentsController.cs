@@ -44,6 +44,22 @@ public class PaymentsController : ControllerBase
         return Ok(result.Response);
     }
 
+    [HttpGet("my")]
+    public async Task<ActionResult<List<PaymentResponse>>> GetMyPayments()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            return Unauthorized("Invalid token.");
+        }
+
+        var userId = int.Parse(userIdClaim);
+        var payments = await _paymentService.GetMyPaymentsAsync(userId);
+
+        return Ok(payments);
+    }
+
     [HttpGet("{bookingId}")]
     public async Task<ActionResult<PaymentResponse>> GetPaymentByBookingId(int bookingId)
     {

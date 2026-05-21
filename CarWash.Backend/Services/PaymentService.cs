@@ -89,6 +89,12 @@ public class PaymentService : IPaymentService
         };
     }
 
+    public async Task<List<PaymentResponse>> GetMyPaymentsAsync(int userId)
+    {
+        var payments = await _paymentRepository.GetByUserIdAsync(userId);
+        return payments.Select(p => MapToResponse(p, string.Empty)).ToList();
+    }
+
     private static PaymentResponse MapToResponse(Payment payment, string message)
     {
         return new PaymentResponse
