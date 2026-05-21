@@ -93,7 +93,7 @@ export class CarsComponent implements OnInit {
 
     const payload = {
       ...this.formData,
-      imageUrl: this.formData.imageUrl.trim() || null
+      imageUrl: this.formData.imageUrl.trim()
     };
 
     if (this.isEditing() && this.editingCarId() !== null) {
