@@ -20,4 +20,8 @@ export class PaymentService {
   getMyReceipts(): Observable<Receipt[]> {
     return this.http.get<Receipt[]>(`${this.apiUrl}/receipts/my`);
   }
+
+  generateReceipt(bookingId: number): Observable<Receipt> {
+    return this.http.post<Receipt>(`${this.apiUrl}/receipts/generate/${bookingId}`, {});
+  }
 }

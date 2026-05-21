@@ -111,6 +111,12 @@
                 }
               </div>
 
+              @if (booking.status === 'Pending') {
+                <div class="job-footer pending-footer">
+                  <span class="pending-text">⏳ Awaiting admin confirmation before you can start</span>
+                </div>
+              }
+
               @if (getNextStatus(booking.status)) {
                 <div class="job-footer">
                   <button

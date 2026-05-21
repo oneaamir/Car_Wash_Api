@@ -17,20 +17,22 @@ export class PaymentsComponent implements OnInit {
   private paymentService = inject(PaymentService);
   private bookingService = inject(BookingService);
 
-  payments = signal<Payment[]>([]);
-  receipts = signal<Receipt[]>([]);
+  payments  = signal<Payment[]>([]);
+  receipts  = signal<Receipt[]>([]);
   myBookings = signal<Booking[]>([]);
 
   isLoadingPayments = signal(true);
   isLoadingReceipts = signal(true);
 
-  listError = signal('');
+  listError  = signal('');
   successMsg = signal('');
-  showForm = signal(false);
+  showForm   = signal(false);
   isSubmitting = signal(false);
-  formError = signal('');
+  formError  = signal('');
 
-  viewingReceiptId = signal<number | null>(null);
+  viewingReceiptId   = signal<number | null>(null);
+  generatingReceiptId = signal<number | null>(null);
+  receiptGenError    = signal('');
 
   formData = { bookingId: 0, paymentMethod: '', transactionRef: '' };
   paymentMethods = ['Cash', 'Card', 'UPI', 'Online Banking'];
@@ -65,50 +67,60 @@ export class PaymentsComponent implements OnInit {
     });
   }
 
-  openForm(): void {
-    this.resetForm();
-    this.showForm.set(true);
+  // Only show bookings that don't have a payment yet
+  get unpaidBookings(): Booking[] {
+    const paidIds = new Set(this.payments().map(p => p.bookingId));
+    return this.myBookings().filter(b => !paidIds.has(b.id));
   }
 
-  closeForm(): void {
-    this.showForm.set(false);
-    this.resetForm();
-  }
+  openForm(): void { this.resetForm(); this.showForm.set(true); }
+  closeForm(): void { this.showForm.set(false); this.resetForm(); }
 
   onSubmit(): void {
     if (!this.formData.bookingId || !this.formData.paymentMethod) {
       this.formError.set('Please select a booking and payment method.');
       return;
     }
-
     this.isSubmitting.set(true);
     this.formError.set('');
-
     this.paymentService.createPayment({
       bookingId: this.formData.bookingId,
       paymentMethod: this.formData.paymentMethod,
       transactionRef: this.formData.transactionRef.trim()
     }).subscribe({
       next: () => {
-        this.successMsg.set('Payment processed successfully. Your receipt has been generated.');
+        this.successMsg.set('Payment submitted successfully. Admin will verify and mark it as successful.');
         this.isSubmitting.set(false);
         this.closeForm();
         this.loadPayments();
-        this.loadReceipts();
+        this.loadMyBookings();
       },
       error: (err) => {
-        this.formError.set(err.error?.message || 'Payment could not be processed. Please try again.');
+        this.formError.set(err.error?.message || err.error || 'Payment could not be processed. Please try again.');
         this.isSubmitting.set(false);
       }
     });
   }
 
+  // Called after admin marks payment as Success — customer generates receipt
+  generateReceipt(payment: Payment): void {
+    this.generatingReceiptId.set(payment.id);
+    this.receiptGenError.set('');
+    this.paymentService.generateReceipt(payment.bookingId).subscribe({
+      next: (receipt) => {
+        this.receipts.update(list => [...list, receipt]);
+        this.generatingReceiptId.set(null);
+        this.viewingReceiptId.set(payment.id);
+      },
+      error: (err) => {
+        this.receiptGenError.set(err.error?.message || err.error || 'Could not generate receipt.');
+        this.generatingReceiptId.set(null);
+      }
+    });
+  }
+
   toggleReceipt(paymentId: number): void {
-    if (this.viewingReceiptId() === paymentId) {
-      this.viewingReceiptId.set(null);
-    } else {
-      this.viewingReceiptId.set(paymentId);
-    }
+    this.viewingReceiptId.set(this.viewingReceiptId() === paymentId ? null : paymentId);
   }
 
   getReceiptForPayment(paymentId: number): Receipt | undefined {
@@ -119,9 +131,7 @@ export class PaymentsComponent implements OnInit {
     return this.myBookings().find(b => b.id === bookingId);
   }
 
-  printReceipt(): void {
-    window.print();
-  }
+  printReceipt(): void { window.print(); }
 
   formatDate(dateStr: string): string {
     if (!dateStr) return '';
@@ -132,7 +142,7 @@ export class PaymentsComponent implements OnInit {
 
   getPaymentStatusClass(status: string): string {
     switch (status?.toLowerCase()) {
-      case 'completed': return 'status-completed';
+      case 'success':   return 'status-completed';
       case 'pending':   return 'status-pending';
       case 'failed':    return 'status-failed';
       case 'refunded':  return 'status-refunded';

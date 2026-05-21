@@ -204,11 +204,18 @@
 .btn-complete { background: #059669; color: white; }
 
 .completed-footer { background: #f0fdf4; }
+.pending-footer   { background: #fffbeb; }
 
 .completed-text {
   font-weight: 600;
   color: #15803d;
   font-size: 0.9rem;
+}
+
+.pending-text {
+  font-weight: 500;
+  color: #92400e;
+  font-size: 0.875rem;
 }
 
 // Loading
