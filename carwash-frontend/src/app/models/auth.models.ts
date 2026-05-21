@@ -14,6 +14,7 @@ export interface RegisterRequest {
   email: string;
   phone: string;
   password: string;
+  role: string;
 }
 
 // Login/Register ke baad backend se yeh data milega

@@ -90,6 +90,29 @@
         }
       </div>
 
+      <!-- Role Selection -->
+      <div class="form-group">
+        <label>Register As *</label>
+        <div class="role-options">
+          <label class="role-option" [class.selected]="formData.role === 'Customer'">
+            <input type="radio" name="role" value="Customer" [(ngModel)]="formData.role" />
+            <div class="role-content">
+              <span class="role-icon">🧑‍💼</span>
+              <span class="role-label">Customer</span>
+              <span class="role-desc">Book car wash services</span>
+            </div>
+          </label>
+          <label class="role-option" [class.selected]="formData.role === 'Washer'">
+            <input type="radio" name="role" value="Washer" [(ngModel)]="formData.role" />
+            <div class="role-content">
+              <span class="role-icon">🧹</span>
+              <span class="role-label">Washer</span>
+              <span class="role-desc">Work as a car washer</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
       <!-- Confirm Password -->
       <div class="form-group">
         <label for="confirmPassword">Confirm Password</label>

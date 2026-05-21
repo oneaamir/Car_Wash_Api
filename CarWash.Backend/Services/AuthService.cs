@@ -34,7 +34,7 @@ public class AuthService : IAuthService
             Email = request.Email,
             Phone = request.Phone,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            Role = "Customer"
+            Role = request.Role
         };
 
         await _userRepository.AddAsync(user);

@@ -16,7 +16,8 @@ export class RegisterComponent {
     email: '',
     phone: '',
     password: '',
-    confirmPassword: ''  // Sirf frontend validation ke liye - backend ko nahi bhejenge
+    confirmPassword: '',
+    role: 'Customer'
   };
 
   isLoading = false;
@@ -29,27 +30,23 @@ export class RegisterComponent {
   ) {}
 
   onSubmit(): void {
-    // Password match check - frontend validation
     if (this.formData.password !== this.formData.confirmPassword) {
-      this.errorMessage = 'Passwords do not match!';
-      return; // Aage mat jao
+      this.errorMessage = 'Passwords do not match.';
+      return;
     }
 
     this.isLoading = true;
     this.errorMessage = '';
 
-    // Backend ke liye sirf required fields - confirmPassword exclude karo
-    const registerData = {
+    this.authService.register({
       fullName: this.formData.fullName,
       email: this.formData.email,
       phone: this.formData.phone,
-      password: this.formData.password
-    };
-
-    this.authService.register(registerData).subscribe({
+      password: this.formData.password,
+      role: this.formData.role
+    }).subscribe({
       next: () => {
-        this.successMessage = 'Registration successful! Redirecting to login...';
-        // 2 seconds baad login page pe jao
+        this.successMessage = `Account created as ${this.formData.role}. Redirecting to login...`;
         setTimeout(() => this.router.navigate(['/login']), 2000);
       },
       error: (err) => {
