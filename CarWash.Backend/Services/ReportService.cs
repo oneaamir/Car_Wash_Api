@@ -27,6 +27,7 @@ public class ReportService : IReportService
             TotalBookings = filteredBookings.Count,
             PendingBookings = filteredBookings.Count(booking => booking.Status == "Pending"),
             ConfirmedBookings = filteredBookings.Count(booking => booking.Status == "Confirmed"),
+            InProgressBookings = filteredBookings.Count(booking => booking.Status == "InProgress"),
             CompletedBookings = filteredBookings.Count(booking => booking.Status == "Completed"),
             CancelledBookings = filteredBookings.Count(booking => booking.Status == "Cancelled"),
             Message = "Booking report fetched successfully."
@@ -39,24 +40,38 @@ public class ReportService : IReportService
         var filteredPayments = payments
             .Where(payment => IsWithinRange(payment.CreatedAt, request.DateFrom, request.DateTo))
             .ToList();
-        var successPayments = payments
-            .Where(payment => IsWithinRange(payment.CreatedAt, request.DateFrom, request.DateTo))
-            .Where(payment => payment.PaymentStatus == "Success")
-            .ToList();
-        var totalPaymentAttempts = filteredPayments.Count;
-        var failedPayments = filteredPayments.Count(payment => payment.PaymentStatus == "Failed");
 
+        var successPayments = filteredPayments
+            .Where(payment => payment.PaymentStatus.Equals("Success", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        var totalPaymentAttempts = filteredPayments.Count;
+        var pendingPayments = filteredPayments.Count(p => p.PaymentStatus.Equals("Pending", StringComparison.OrdinalIgnoreCase));
+        var failedPayments  = filteredPayments.Count(p => p.PaymentStatus.Equals("Failed",  StringComparison.OrdinalIgnoreCase));
         var successfulPayments = successPayments.Count;
-        var totalRevenue = successPayments.Sum(payment => payment.Amount);
-        var averagePaymentAmount = successfulPayments == 0 ? 0 : totalRevenue / successfulPayments;
+        var totalRevenue = successPayments.Sum(p => p.Amount);
+        var averagePaymentAmount = successfulPayments == 0 ? 0 : Math.Round(totalRevenue / successfulPayments, 2);
+
+        var revenueByMethod = successPayments
+            .GroupBy(p => string.IsNullOrWhiteSpace(p.PaymentMethod) ? "Other" : p.PaymentMethod)
+            .Select(g => new PaymentMethodSummary
+            {
+                Method = g.Key,
+                Count  = g.Count(),
+                Amount = g.Sum(p => p.Amount)
+            })
+            .OrderByDescending(s => s.Amount)
+            .ToList();
 
         return new RevenueReportResponse
         {
             TotalPaymentAttempts = totalPaymentAttempts,
-            SuccessfulPayments = successfulPayments,
-            FailedPayments = failedPayments,
-            TotalRevenue = totalRevenue,
+            PendingPayments      = pendingPayments,
+            SuccessfulPayments   = successfulPayments,
+            FailedPayments       = failedPayments,
+            TotalRevenue         = totalRevenue,
             AveragePaymentAmount = averagePaymentAmount,
+            RevenueByMethod      = revenueByMethod,
             Message = "Revenue report fetched successfully."
         };
     }

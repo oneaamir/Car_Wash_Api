@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../core/services/admin.service';
-import { AdminBooking, AdminUser, PromoCode, BookingReport, RevenueReport } from '../../models/admin.models';
+import { AdminBooking, AdminUser, PromoCode, BookingReport, RevenueReport, PaymentMethodSummary } from '../../models/admin.models';
 import { Payment } from '../../models/payment.models';
 import { ServicePlan, AddOn } from '../../models/services.models';
 
@@ -80,11 +80,26 @@ export class AdminComponent implements OnInit {
   private paymentsLoaded = false;
 
   // ---- Reports ----
-  reportFilter    = { dateFrom: '', dateTo: '' };
+  reportMonth = signal(new Date().getMonth() + 1);  // 1–12
+  reportYear  = signal(new Date().getFullYear());
   bookingReport   = signal<BookingReport | null>(null);
   revenueReport   = signal<RevenueReport | null>(null);
   isLoadingReport = signal(false);
   reportError     = signal('');
+
+  months = [
+    { value: 1,  label: 'January' },  { value: 2,  label: 'February' },
+    { value: 3,  label: 'March' },    { value: 4,  label: 'April' },
+    { value: 5,  label: 'May' },      { value: 6,  label: 'June' },
+    { value: 7,  label: 'July' },     { value: 8,  label: 'August' },
+    { value: 9,  label: 'September' },{ value: 10, label: 'October' },
+    { value: 11, label: 'November' }, { value: 12, label: 'December' }
+  ];
+
+  get reportYears(): number[] {
+    const current = new Date().getFullYear();
+    return [current - 1, current, current + 1];
+  }
 
   ngOnInit(): void {
     this.loadBookings();
@@ -99,6 +114,7 @@ export class AdminComponent implements OnInit {
     if (tab === 'services'  && !this.servicesLoaded)  this.loadServices();
     if (tab === 'promos'    && !this.promosLoaded)    this.loadPromoCodes();
     if (tab === 'payments'  && !this.paymentsLoaded)  this.loadPayments();
+    if (tab === 'reports')                            this.loadReports();
   }
 
   // ========== Bookings ==========
@@ -420,9 +436,14 @@ export class AdminComponent implements OnInit {
   loadReports(): void {
     this.isLoadingReport.set(true);
     this.reportError.set('');
+
+    const year  = this.reportYear();
+    const month = this.reportMonth();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const lastDay = new Date(year, month, 0).getDate();
     const filter = {
-      dateFrom: this.reportFilter.dateFrom || undefined,
-      dateTo:   this.reportFilter.dateTo   || undefined
+      dateFrom: `${year}-${pad(month)}-01`,
+      dateTo:   `${year}-${pad(month)}-${pad(lastDay)}`
     };
 
     let bookingDone = false;
@@ -445,6 +466,10 @@ export class AdminComponent implements OnInit {
       },
       error: () => { this.reportError.set('Failed to load revenue report.'); this.isLoadingReport.set(false); }
     });
+  }
+
+  get selectedMonthLabel(): string {
+    return this.months.find(m => m.value === this.reportMonth())?.label ?? '';
   }
 
   // ========== Helpers ==========

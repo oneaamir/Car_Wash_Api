@@ -54,10 +54,22 @@ export interface UpdatePromoCodeRequest { code: string; discountType: string; di
 // Reports
 export interface ReportFilter { dateFrom?: string; dateTo?: string; }
 export interface BookingReport {
-  totalBookings: number; pendingBookings: number; confirmedBookings: number;
-  completedBookings: number; cancelledBookings: number; message: string;
+  totalBookings: number;
+  pendingBookings: number;
+  confirmedBookings: number;
+  inProgressBookings: number;
+  completedBookings: number;
+  cancelledBookings: number;
+  message: string;
 }
+export interface PaymentMethodSummary { method: string; count: number; amount: number; }
 export interface RevenueReport {
-  totalPaymentAttempts: number; successfulPayments: number; failedPayments: number;
-  totalRevenue: number; averagePaymentAmount: number; message: string;
+  totalPaymentAttempts: number;
+  pendingPayments: number;
+  successfulPayments: number;
+  failedPayments: number;
+  totalRevenue: number;
+  averagePaymentAmount: number;
+  revenueByMethod: PaymentMethodSummary[];
+  message: string;
 }

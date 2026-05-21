@@ -8,6 +8,8 @@ public class BookingReportResponse
 
     public int ConfirmedBookings { get; set; }
 
+    public int InProgressBookings { get; set; }
+
     public int CompletedBookings { get; set; }
 
     public int CancelledBookings { get; set; }

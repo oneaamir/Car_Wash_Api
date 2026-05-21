@@ -553,31 +553,47 @@
     @if (activeTab() === 'reports') {
 
       <div class="section-block">
-        <h2 class="section-title">Generate Reports</h2>
 
-        <!-- Date Filter -->
-        <div class="report-filter">
-          <div class="form-group">
-            <label>From Date</label>
-            <input type="date" [(ngModel)]="reportFilter.dateFrom" />
+        <!-- Month / Year Picker -->
+        <div class="report-header-row">
+          <h2 class="section-title">Monthly Report</h2>
+          <div class="month-picker">
+            <select [ngModel]="reportMonth()" (ngModelChange)="reportMonth.set(+$event); loadReports()" class="month-select">
+              @for (m of months; track m.value) {
+                <option [value]="m.value">{{ m.label }}</option>
+              }
+            </select>
+            <select [ngModel]="reportYear()" (ngModelChange)="reportYear.set(+$event); loadReports()" class="year-select">
+              @for (y of reportYears; track y) {
+                <option [value]="y">{{ y }}</option>
+              }
+            </select>
+            <button class="btn-report" (click)="loadReports()" [disabled]="isLoadingReport()">
+              {{ isLoadingReport() ? 'Loading...' : 'Refresh' }}
+            </button>
           </div>
-          <div class="form-group">
-            <label>To Date</label>
-            <input type="date" [(ngModel)]="reportFilter.dateTo" />
-          </div>
-          <button class="btn-report" (click)="loadReports()" [disabled]="isLoadingReport()">
-            {{ isLoadingReport() ? 'Loading...' : 'Generate Report' }}
-          </button>
         </div>
+
+        <p class="report-period-label">
+          Showing data for <strong>{{ selectedMonthLabel }} {{ reportYear() }}</strong>
+        </p>
 
         @if (reportError()) { <div class="error-message">{{ reportError() }}</div> }
 
-        @if (bookingReport()) {
+        @if (isLoadingReport()) {
+          <div class="loading-list">
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+          </div>
+        }
+
+        <!-- Booking Report -->
+        @if (bookingReport() && !isLoadingReport()) {
           @let br = bookingReport()!;
           <div class="report-section">
-            <h3 class="report-heading">Booking Report</h3>
+            <h3 class="report-heading">Booking Summary</h3>
             <div class="stats-grid">
-              <div class="stat-card">
+              <div class="stat-card stat-total">
                 <div class="stat-value">{{ br.totalBookings }}</div>
                 <div class="stat-label">Total Bookings</div>
               </div>
@@ -588,6 +604,10 @@
               <div class="stat-card stat-confirmed">
                 <div class="stat-value">{{ br.confirmedBookings }}</div>
                 <div class="stat-label">Confirmed</div>
+              </div>
+              <div class="stat-card stat-inprogress">
+                <div class="stat-value">{{ br.inProgressBookings }}</div>
+                <div class="stat-label">In Progress</div>
               </div>
               <div class="stat-card stat-completed">
                 <div class="stat-value">{{ br.completedBookings }}</div>
@@ -601,10 +621,11 @@
           </div>
         }
 
-        @if (revenueReport()) {
+        <!-- Revenue Report -->
+        @if (revenueReport() && !isLoadingReport()) {
           @let rr = revenueReport()!;
           <div class="report-section">
-            <h3 class="report-heading">Revenue Report</h3>
+            <h3 class="report-heading">Revenue Summary</h3>
             <div class="stats-grid">
               <div class="stat-card stat-revenue">
                 <div class="stat-value">Rs. {{ rr.totalRevenue }}</div>
@@ -612,11 +633,15 @@
               </div>
               <div class="stat-card stat-completed">
                 <div class="stat-value">{{ rr.successfulPayments }}</div>
-                <div class="stat-label">Successful Payments</div>
+                <div class="stat-label">Successful</div>
+              </div>
+              <div class="stat-card stat-pending">
+                <div class="stat-value">{{ rr.pendingPayments }}</div>
+                <div class="stat-label">Pending</div>
               </div>
               <div class="stat-card stat-cancelled">
                 <div class="stat-value">{{ rr.failedPayments }}</div>
-                <div class="stat-label">Failed Payments</div>
+                <div class="stat-label">Failed</div>
               </div>
               <div class="stat-card">
                 <div class="stat-value">{{ rr.totalPaymentAttempts }}</div>
@@ -624,17 +649,40 @@
               </div>
               <div class="stat-card stat-confirmed">
                 <div class="stat-value">Rs. {{ rr.averagePaymentAmount }}</div>
-                <div class="stat-label">Average Payment</div>
+                <div class="stat-label">Avg. Payment</div>
               </div>
             </div>
+
+            <!-- Revenue by Payment Method -->
+            @if (rr.revenueByMethod.length > 0) {
+              <div class="method-breakdown">
+                <h4 class="breakdown-heading">Revenue by Payment Method</h4>
+                <div class="method-table">
+                  <div class="method-table-header">
+                    <span>Method</span>
+                    <span>Transactions</span>
+                    <span>Amount</span>
+                  </div>
+                  @for (m of rr.revenueByMethod; track m.method) {
+                    <div class="method-table-row">
+                      <span class="method-name">{{ m.method }}</span>
+                      <span class="method-count">{{ m.count }}</span>
+                      <span class="method-amount">Rs. {{ m.amount }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <p class="empty-text">No successful payments in this period.</p>
+            }
           </div>
         }
 
         @if (!bookingReport() && !revenueReport() && !isLoadingReport()) {
           <div class="empty-state">
             <span class="empty-icon">📊</span>
-            <h3>No report generated yet</h3>
-            <p>Select a date range and click "Generate Report".</p>
+            <h3>No data for {{ selectedMonthLabel }} {{ reportYear() }}</h3>
+            <p>No bookings or payments found in this period.</p>
           </div>
         }
 
