@@ -1,43 +1,88 @@
-/* Profile Page Styles */
+.profile-page {
+  padding: 28px 32px;
+  min-height: 100vh;
+  background: transparent;
 
-.profile-layout {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 24px;
-  max-width: 900px;
-  margin: 0 auto;
+  @media (max-width: 700px) { padding: 16px; }
 }
 
-/* Left side - avatar card */
-.profile-card {
+// Page Title Row
+.page-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.page-title { font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 4px; }
+.page-subtitle { font-size: 13px; color: #64748b; margin: 0; }
+
+// Error
+.msg-error {
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+// Loading
+.loading-state {
+  color: #64748b;
+  font-size: 14px;
+  padding: 40px 0;
   text-align: center;
-  padding: 32px 24px;
+}
+
+// Profile Layout
+.profile-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 20px;
+
+  @media (max-width: 768px) { grid-template-columns: 1fr; }
+}
+
+// Profile Card
+.profile-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  padding: 28px 22px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 
 .avatar {
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   background: #1a73e8;
-  color: white;
-  font-size: 32px;
+  color: #fff;
+  font-size: 28px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 16px;
+  margin: 0 auto 14px;
 }
 
 .profile-name {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 8px;
 }
 
 .profile-email {
-  color: #5f6368;
-  font-size: 14px;
-  margin-top: 8px;
+  color: #64748b;
+  font-size: 13px;
+  margin: 8px 0 0;
   word-break: break-all;
 }
 
@@ -49,58 +94,66 @@
   font-weight: 600;
 }
 
-.badge-customer {
-  background: #e8f0fe;
-  color: #1a73e8;
-}
+.badge-customer { background: #eaf1fe; color: #1a73e8; }
+.badge-admin    { background: #fee2e2; color: #dc2626; }
+.badge-washer   { background: #dcfce7; color: #15803d; }
 
-.badge-admin {
-  background: #fce8e6;
-  color: #c5221f;
-}
-
-.badge-washer {
-  background: #e6f4ea;
-  color: #137333;
-}
-
-.logout-btn {
+.btn-logout {
   width: 100%;
   margin-top: 20px;
+  padding: 9px 16px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover { background: #fee2e2; }
 }
 
-/* Right side - details */
+// Info Card
 .info-card {
-  padding: 28px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  padding: 24px 26px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 0;
-  border-bottom: 1px solid #f1f3f4;
+  padding: 13px 0;
+  border-bottom: 1px solid #f1f5f9;
+  &:last-of-type { border-bottom: none; }
 }
 
-.info-row:last-child {
-  border-bottom: none;
+.info-label { color: #64748b; font-size: 13px; font-weight: 500; }
+.info-value { color: #0f172a; font-size: 13px; font-weight: 500; }
+
+// Quick Links
+.quick-links-title {
+  margin: 20px 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
 }
 
-.info-label {
-  color: #5f6368;
-  font-size: 14px;
+.quick-links { display: flex; flex-direction: column; gap: 8px; }
+
+.quick-link-btn {
+  display: block;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #374151;
+  font-size: 13px;
   font-weight: 500;
-}
-
-.info-value {
-  color: #202124;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .profile-layout {
-    grid-template-columns: 1fr;
-  }
+  text-decoration: none;
+  border: 1px solid #e5e7eb;
+  transition: all 0.15s;
+  &:hover { background: #eaf1fe; color: #1a73e8; border-color: #bfdbfe; }
 }

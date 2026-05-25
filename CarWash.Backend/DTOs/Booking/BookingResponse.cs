@@ -42,5 +42,13 @@ public class BookingResponse
 
     public decimal TotalAmount { get; set; }
 
+    public string CustomerName { get; set; } = string.Empty;
+
+    public string CustomerPhone { get; set; } = string.Empty;
+
+    public string ServicePlanDescription { get; set; } = string.Empty;
+
+    public DateTime CreatedAt { get; set; }
+
     public string Message { get; set; } = string.Empty;
 }

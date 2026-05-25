@@ -74,21 +74,26 @@
 
       <!-- Password -->
       <div class="form-group">
-        <label for="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          placeholder="Minimum 6 characters"
-          [(ngModel)]="formData.password"
-          required
-          minlength="6"
-          #passwordField="ngModel"
-        />
-        @if (passwordField.invalid && passwordField.touched) {
-          <span class="field-error">Password must be at least 6 characters</span>
-        }
-      </div>
+  <label for="password">Password</label>
+  <div class="password-wrapper">
+    <input
+      [type]="showPassword ? 'text' : 'password'"
+      id="password"
+      name="password"
+      placeholder="Minimum 6 characters"
+      [(ngModel)]="formData.password"
+      required
+      minlength="6"
+      #passwordField="ngModel"
+    />
+    <button type="button" class="toggle-pw" (click)="showPassword = !showPassword">
+      {{ showPassword ? '🙈' : '👁' }}
+    </button>
+  </div>
+  @if (passwordField.invalid && passwordField.touched) {
+    <span class="field-error">Password must be at least 6 characters</span>
+  }
+</div>
 
       <!-- Role Selection -->
       <div class="form-group">

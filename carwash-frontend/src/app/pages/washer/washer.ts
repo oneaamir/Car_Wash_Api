@@ -1,11 +1,12 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { WasherService } from '../../core/services/washer.service';
 import { Booking } from '../../models/booking.models';
 
 @Component({
   selector: 'app-washer',
   standalone: true,
-  imports: [],
+  imports: [FormsModule],
   templateUrl: './washer.html',
   styleUrl: './washer.scss'
 })
@@ -21,6 +22,12 @@ export class WasherComponent implements OnInit {
   statusFilter = signal('All');
 
   statusFilters = ['All', 'Confirmed', 'InProgress', 'Completed'];
+  sortOrder = signal('date-asc');
+  sortOptions = [
+    { value: 'date-asc',    label: 'Date: Earliest First' },
+    { value: 'date-desc',   label: 'Date: Latest First' },
+    { value: 'amount-high', label: 'Amount: High to Low' }
+  ];
 
   ngOnInit(): void {
     this.loadBookings();
@@ -42,8 +49,23 @@ export class WasherComponent implements OnInit {
 
   get filteredBookings(): Booking[] {
     const f = this.statusFilter();
-    if (f === 'All') return this.bookings();
-    return this.bookings().filter(b => b.status === f);
+    let list = f === 'All' ? this.bookings() : this.bookings().filter(b => b.status === f);
+    switch (this.sortOrder()) {
+      case 'date-desc':   return [...list].sort((a, b) => new Date(b.bookingDate).getTime() - new Date(a.bookingDate).getTime());
+      case 'amount-high': return [...list].sort((a, b) => b.totalAmount - a.totalAmount);
+      default:            return [...list].sort((a, b) => new Date(a.bookingDate).getTime() - new Date(b.bookingDate).getTime());
+    }
+  }
+
+  get todaysSummary(): { total: number; confirmed: number; inProgress: number; completed: number } {
+    const today = new Date().toISOString().split('T')[0];
+    const todayJobs = this.bookings().filter(b => b.bookingDate.startsWith(today));
+    return {
+      total:      todayJobs.length,
+      confirmed:  todayJobs.filter(b => b.status === 'Confirmed').length,
+      inProgress: todayJobs.filter(b => b.status === 'InProgress').length,
+      completed:  todayJobs.filter(b => b.status === 'Completed').length
+    };
   }
 
   // Washer can only: Confirmed → InProgress → Completed

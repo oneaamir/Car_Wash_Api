@@ -1,23 +1,20 @@
-import { Component } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { HeaderComponent } from './shared/components/header/header';
-import { FooterComponent } from './shared/components/footer/footer';
-
-// @Component = Angular decorator hai
-// Decorator ek special tag hai jo class ko batata hai ki yeh ek Angular Component hai
-// Component = Angular ki building block - ek reusable piece of UI
+import { HeaderComponent }          from './shared/components/header/header';
+import { FooterComponent }          from './shared/components/footer/footer';
+import { CustomerSidebarComponent } from './shared/components/customer-sidebar/customer-sidebar';
+import { AdminSidebarComponent }    from './shared/components/admin-sidebar/admin-sidebar';
+import { AuthService }              from './core/services/auth.service';
 
 @Component({
-  selector: 'app-root',          // HTML mein yeh tag use hoga: <app-root>
-  imports: [
-    RouterOutlet,                // Router ka outlet - yahan pe page components render honge
-    HeaderComponent,             // Hamara header component
-    FooterComponent              // Hamara footer component
-  ],
-  templateUrl: './app.html',     // HTML template file
-  styleUrl: './app.scss'         // Styles file
+  selector: 'app-root',
+  standalone: true,
+  imports: [RouterOutlet, HeaderComponent, FooterComponent, CustomerSidebarComponent, AdminSidebarComponent],
+  templateUrl: './app.html',
+  styleUrl: './app.scss'
 })
 export class App {
-  // App class = root component ki logic
-  // Abhi koi logic nahi hai, sirf layout hai
+  private auth = inject(AuthService);
+  isCustomerLayout = computed(() => this.auth.currentUser()?.role === 'Customer');
+  isAdminLayout    = computed(() => this.auth.currentUser()?.role === 'Admin');
 }

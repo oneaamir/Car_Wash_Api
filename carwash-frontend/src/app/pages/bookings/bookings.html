@@ -1,316 +1,250 @@
 <div class="bookings-page">
 
-  <!-- Page Header -->
-  <div class="page-header">
-    <div class="container">
-      <div class="header-row">
-        <div>
-          <h1>My Bookings</h1>
-          <p>View and manage all your car wash bookings</p>
-        </div>
-        @if (!showForm()) {
-          <button class="btn btn-primary" (click)="openForm()">
-            + New Booking
-          </button>
-        }
-      </div>
+  <!-- Page Title Row -->
+  <div class="page-title-row">
+    <div>
+      <h1 class="page-title">My Bookings</h1>
+      <p class="page-subtitle">View and manage all your car wash bookings</p>
     </div>
+    @if (!showForm()) {
+      <button class="btn-primary-action" (click)="openForm()">+ New Booking</button>
+    }
   </div>
 
-  <div class="container">
+  <!-- Success / Error messages -->
+  @if (successMsg()) { <div class="msg-success">{{ successMsg() }}</div> }
+  @if (listError())   { <div class="msg-error">{{ listError() }}</div> }
 
-    <!-- Success Message -->
-    @if (successMsg()) {
-      <div class="success-message">{{ successMsg() }}</div>
-    }
+  <!-- ====== CREATE BOOKING FORM ====== -->
+  @if (showForm()) {
+    <div class="form-card">
+      <div class="form-card-header">
+        <h2>New Booking</h2>
+        <button class="close-btn" (click)="closeForm()">✕</button>
+      </div>
 
-    <!-- List Error -->
-    @if (listError()) {
-      <div class="error-message">{{ listError() }}</div>
-    }
+      @if (formError()) { <div class="msg-error">{{ formError() }}</div> }
 
-    <!-- ====== CREATE BOOKING FORM ====== -->
-    @if (showForm()) {
-      <div class="form-card">
-        <div class="form-card-header">
-          <h2>New Booking</h2>
-          <button class="close-btn" (click)="closeForm()">✕</button>
-        </div>
+      <form (ngSubmit)="onSubmit()">
+        <div class="form-grid">
 
-        @if (formError()) {
-          <div class="error-message">{{ formError() }}</div>
-        }
-
-        <form (ngSubmit)="onSubmit()">
-
-          <div class="form-grid">
-
-            <!-- Car Selection -->
-            <div class="form-group">
-              <label for="carId">Select Vehicle *</label>
-              @if (myCars().length === 0) {
-                <p class="hint-text">No vehicles found. Please add a vehicle from the <a routerLink="/cars">My Cars</a> page first.</p>
-              } @else {
-                <select id="carId" name="carId" [(ngModel)]="formData.carId" required>
-                  <option [ngValue]="0">-- Select Vehicle --</option>
-                  @for (car of myCars(); track car.id) {
-                    <option [ngValue]="car.id">
-                      {{ car.brand }} {{ car.model }} ({{ car.carNumber }})
-                    </option>
-                  }
-                </select>
-              }
-            </div>
-
-            <!-- Booking Date -->
-            <div class="form-group">
-              <label for="bookingDate">Booking Date *</label>
-              <input
-                type="date"
-                id="bookingDate"
-                name="bookingDate"
-                [(ngModel)]="formData.bookingDate"
-                [min]="minDate"
-                required
-              />
-            </div>
-
-            <!-- Booking Type -->
-            <div class="form-group full-width">
-              <label>Booking Type *</label>
-              <div class="type-options">
-                @for (type of bookingTypes; track type) {
-                  <label class="type-option" [class.selected]="formData.bookingType === type">
-                    <input
-                      type="radio"
-                      name="bookingType"
-                      [value]="type"
-                      [(ngModel)]="formData.bookingType"
-                    />
-                    <div class="type-option-content">
-                      @if (type === 'WalkIn') {
-                        <span class="type-icon">🏪</span>
-                        <span class="type-label">Walk-In</span>
-                        <span class="type-desc">Drop your car at our centre</span>
-                      } @else {
-                        <span class="type-icon">🏠</span>
-                        <span class="type-label">Home Service</span>
-                        <span class="type-desc">We come to your location</span>
-                      }
-                    </div>
-                  </label>
+          <!-- Car -->
+          <div class="form-group">
+            <label>Select Vehicle *</label>
+            @if (myCars().length === 0) {
+              <p class="hint-text">No vehicles found. <a routerLink="/cars">Add a vehicle</a> first.</p>
+            } @else {
+              <select name="carId" [(ngModel)]="formData.carId" required>
+                <option [ngValue]="0">-- Select Vehicle --</option>
+                @for (car of myCars(); track car.id) {
+                  <option [ngValue]="car.id">{{ car.brand }} {{ car.model }} ({{ car.carNumber }})</option>
                 }
-              </div>
-            </div>
-
-            <!-- Address -->
-            <div class="form-group full-width">
-              <label for="address">Service Address *</label>
-              <input
-                type="text"
-                id="address"
-                name="address"
-                [(ngModel)]="formData.address"
-                required
-                placeholder="Enter the full address where service will be provided"
-              />
-            </div>
-
-            <!-- Service Plan Selection -->
-            <div class="form-group full-width">
-              <label>Service Plan *</label>
-              <div class="plan-options">
-                @for (plan of plans(); track plan.id) {
-                  <label class="plan-option" [class.selected]="formData.servicePlanId === plan.id">
-                    <input
-                      type="radio"
-                      name="servicePlanId"
-                      [value]="plan.id"
-                      [(ngModel)]="formData.servicePlanId"
-                    />
-                    <div class="plan-option-content">
-                      <span class="plan-option-name">{{ plan.name }}</span>
-                      <span class="plan-option-price">Rs. {{ plan.price }}</span>
-                    </div>
-                  </label>
-                }
-              </div>
-            </div>
-
-            <!-- Add-Ons Selection -->
-            @if (addOns().length > 0) {
-              <div class="form-group full-width">
-                <label>Add-Ons <span class="optional">(optional)</span></label>
-                <div class="addon-options">
-                  @for (addon of addOns(); track addon.id) {
-                    <label class="addon-option" [class.selected]="isAddOnSelected(addon.id)">
-                      <input
-                        type="checkbox"
-                        [checked]="isAddOnSelected(addon.id)"
-                        (change)="toggleAddOn(addon.id)"
-                      />
-                      <span class="addon-name">{{ addon.name }}</span>
-                      <span class="addon-price">+Rs. {{ addon.price }}</span>
-                    </label>
-                  }
-                </div>
-              </div>
+              </select>
             }
-
-            <!-- Promo Code -->
-            <div class="form-group">
-              <label for="promoCode">Promo Code <span class="optional">(optional)</span></label>
-              <input
-                type="text"
-                id="promoCode"
-                name="promoCode"
-                [(ngModel)]="formData.promoCode"
-                placeholder="Enter promo code"
-              />
-            </div>
-
-            <!-- Notes -->
-            <div class="form-group">
-              <label for="notes">Notes <span class="optional">(optional)</span></label>
-              <textarea
-                id="notes"
-                name="notes"
-                [(ngModel)]="formData.notes"
-                placeholder="Any special requests or instructions..."
-                rows="2"
-              ></textarea>
-            </div>
-
           </div>
 
-          <!-- Total Amount Preview -->
-          @if (formData.servicePlanId) {
-            <div class="total-preview">
-              <span>Estimated Total:</span>
-              <strong>Rs. {{ totalAmount }}</strong>
+          <!-- Date -->
+          <div class="form-group">
+            <label>Booking Date *</label>
+            <input type="date" name="bookingDate" [(ngModel)]="formData.bookingDate" [min]="minDate" required />
+          </div>
+
+          <!-- Type -->
+          <div class="form-group full-width">
+            <label>Booking Type *</label>
+            <div class="type-options">
+              @for (type of bookingTypes; track type) {
+                <label class="type-option" [class.selected]="formData.bookingType === type">
+                  <input type="radio" name="bookingType" [value]="type" [(ngModel)]="formData.bookingType" />
+                  <div class="type-option-content">
+                    <span class="type-icon">{{ type === 'WalkIn' ? '🏪' : '🏠' }}</span>
+                    <span class="type-label">{{ type === 'WalkIn' ? 'Walk-In' : 'Home Service' }}</span>
+                    <span class="type-desc">{{ type === 'WalkIn' ? 'Drop your car at our centre' : 'We come to your location' }}</span>
+                  </div>
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- Address -->
+          <div class="form-group full-width">
+            <label>Service Address *</label>
+            <input type="text" name="address" [(ngModel)]="formData.address" required placeholder="Enter the full address for service" />
+          </div>
+
+          <!-- Service Plan -->
+          <div class="form-group full-width">
+            <label>Service Plan *</label>
+            <div class="plan-options">
+              @for (plan of plans(); track plan.id) {
+                <label class="plan-option" [class.selected]="formData.servicePlanId === plan.id">
+                  <input type="radio" name="servicePlanId" [value]="plan.id" [(ngModel)]="formData.servicePlanId" />
+                  <div class="plan-option-content">
+                    <span class="plan-option-name">{{ plan.name }}</span>
+                    @if (plan.description) {
+                      <span class="plan-option-desc">{{ plan.description }}</span>
+                    }
+                    <span class="plan-option-price">Rs. {{ plan.price }}</span>
+                  </div>
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- Add-Ons -->
+          @if (addOns().length > 0) {
+            <div class="form-group full-width">
+              <label>Add-Ons <span class="optional">(optional)</span></label>
+              <div class="addon-options">
+                @for (addon of addOns(); track addon.id) {
+                  <label class="addon-option" [class.selected]="isAddOnSelected(addon.id)">
+                    <input type="checkbox" [checked]="isAddOnSelected(addon.id)" (change)="toggleAddOn(addon.id)" />
+                    <span class="addon-name">{{ addon.name }}</span>
+                    <span class="addon-price">+Rs. {{ addon.price }}</span>
+                  </label>
+                }
+              </div>
             </div>
           }
 
-          <div class="form-actions">
-            <button
-              type="submit"
-              class="btn btn-primary"
-              [disabled]="isSubmitting() || !formData.carId || !formData.servicePlanId || !formData.bookingType || !formData.bookingDate || !formData.address"
-            >
-              @if (isSubmitting()) {
-                Processing...
-              } @else {
-                Confirm Booking
-              }
-            </button>
-            <button type="button" class="btn btn-secondary" (click)="closeForm()">
-              Cancel
-            </button>
+          <!-- Promo + Notes -->
+          <div class="form-group">
+            <label>Promo Code <span class="optional">(optional)</span></label>
+            <input type="text" name="promoCode" [(ngModel)]="formData.promoCode" placeholder="Enter promo code" />
+          </div>
+          <div class="form-group">
+            <label>Notes <span class="optional">(optional)</span></label>
+            <textarea name="notes" [(ngModel)]="formData.notes" placeholder="Any special requests..." rows="2"></textarea>
           </div>
 
-        </form>
-      </div>
-    }
+        </div>
 
-    <!-- Status Filter -->
-    @if (!showForm() && bookings().length > 0) {
+        @if (formData.servicePlanId) {
+          <div class="total-preview">
+            <span>Estimated Total:</span>
+            <strong>Rs. {{ totalAmount }}</strong>
+          </div>
+        }
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary-action"
+            [disabled]="isSubmitting() || !formData.carId || !formData.servicePlanId || !formData.bookingType || !formData.bookingDate || !formData.address">
+            {{ isSubmitting() ? 'Processing...' : 'Confirm Booking' }}
+          </button>
+          <button type="button" class="btn-secondary-action" (click)="closeForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Filter & Sort Bar -->
+  @if (!showForm() && bookings().length > 0) {
+    <div class="filter-sort-bar">
       <div class="filter-chips">
         @for (s of statusFilters; track s) {
           <button class="chip" [class.active]="statusFilter() === s" (click)="statusFilter.set(s)">{{ s }}</button>
         }
       </div>
-    }
+      <select class="sort-select" [ngModel]="sortOrder()" (ngModelChange)="sortOrder.set($event)">
+        @for (opt of sortOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+    </div>
+  }
 
-    <!-- ====== BOOKINGS LIST ====== -->
-    @if (isLoadingBookings()) {
-      <div class="loading-grid">
-        <div class="skeleton-card"></div>
-        <div class="skeleton-card"></div>
-        <div class="skeleton-card"></div>
+  <!-- Loading -->
+  @if (isLoadingBookings()) {
+    <div class="loading-grid">
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+    </div>
+  }
+
+  <!-- Bookings List -->
+  @if (!isLoadingBookings() && !listError()) {
+    @if (bookings().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">📅</div>
+        <h3>No bookings yet</h3>
+        <p>Schedule your first car wash service to get started.</p>
+        @if (!showForm()) {
+          <button class="btn-primary-action" (click)="openForm()">+ New Booking</button>
+        }
       </div>
-    }
+    } @else if (filteredBookings.length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h3>No {{ statusFilter() }} bookings</h3>
+        <p><button class="link-btn" (click)="statusFilter.set('All')">Show all bookings</button></p>
+      </div>
+    } @else {
+      <div class="bookings-list">
+        @for (booking of filteredBookings; track booking.id) {
+          <div [class]="'booking-card bk-' + booking.status.toLowerCase()">
 
-    @if (!isLoadingBookings() && !listError()) {
-      @if (bookings().length === 0) {
-        <div class="empty-state">
-          <span class="empty-icon">📅</span>
-          <h3>No bookings yet</h3>
-          <p>Schedule your first car wash service to get started.</p>
-          @if (!showForm()) {
-            <button class="btn btn-primary" (click)="openForm()">+ New Booking</button>
-          }
-        </div>
-      } @else if (filteredBookings.length === 0) {
-        <div class="empty-state">
-          <span class="empty-icon">🔍</span>
-          <h3>No {{ statusFilter() }} bookings</h3>
-          <p>No bookings match this filter. <button class="link-btn" (click)="statusFilter.set('All')">Show all</button></p>
-        </div>
-      } @else {
-        <div class="bookings-list">
-          @for (booking of filteredBookings; track booking.id) {
-            <div class="booking-card">
-
-              <div class="booking-header">
-                <div class="booking-id">Booking #{{ booking.id }}</div>
-                <span class="status-badge" [class]="getStatusClass(booking.status)">
-                  {{ booking.status }}
+            <div class="booking-header">
+              <div class="booking-id-date">
+                <span class="booking-id">Booking #{{ booking.id }}</span>
+                @if (booking.createdAt) {
+                  <span class="booking-created">{{ formatDate(booking.createdAt) }}</span>
+                }
+              </div>
+              <div class="booking-badges">
+                <span [class]="'status-pill ' + getStatusClass(booking.status)">{{ booking.status }}</span>
+                <span class="type-pill" [class.pill-home]="booking.bookingType === 'HomeService'">
+                  {{ booking.bookingType === 'HomeService' ? '🏠 Home' : '🏪 Walk-In' }}
                 </span>
               </div>
+            </div>
 
-              <div class="booking-body">
-                <div class="booking-detail">
-                  <span class="detail-label">Vehicle</span>
-                  <span class="detail-value">
-                    {{ booking.carBrand }} {{ booking.carModel }}
-                    <small>({{ booking.carNumber }})</small>
+            <div class="booking-body">
+              <div class="detail-row">
+                <span class="detail-label">Vehicle</span>
+                <span class="detail-val">{{ booking.carBrand }} {{ booking.carModel }} <small>({{ booking.carNumber }})</small></span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Service</span>
+                <span class="detail-val">{{ booking.servicePlanName }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Date</span>
+                <span class="detail-val">{{ formatDate(booking.bookingDate) }}</span>
+              </div>
+              <div class="detail-row full">
+                <span class="detail-label">Address</span>
+                <span class="detail-val">{{ booking.address }}</span>
+              </div>
+              @if (booking.addOnNames.length) {
+                <div class="detail-row">
+                  <span class="detail-label">Add-Ons</span>
+                  <span class="detail-val">
+                    @for (name of booking.addOnNames; track name) {
+                      <span class="addon-tag">{{ name }}</span>
+                    }
                   </span>
                 </div>
-                <div class="booking-detail">
-                  <span class="detail-label">Service</span>
-                  <span class="detail-value">{{ booking.servicePlanName }}</span>
-                </div>
-                <div class="booking-detail">
-                  <span class="detail-label">Type</span>
-                  <span class="detail-value">{{ booking.bookingType }}</span>
-                </div>
-                <div class="booking-detail">
-                  <span class="detail-label">Date</span>
-                  <span class="detail-value">{{ formatDate(booking.bookingDate) }}</span>
-                </div>
-                <div class="booking-detail full-width">
-                  <span class="detail-label">Address</span>
-                  <span class="detail-value">{{ booking.address }}</span>
-                </div>
-                @if (booking.addOnNames.length) {
-                  <div class="booking-detail">
-                    <span class="detail-label">Add-Ons</span>
-                    <span class="detail-value">
-                      @for (name of booking.addOnNames; track name) {
-                        <span class="addon-tag">{{ name }}</span>
-                      }
-                    </span>
-                  </div>
-                }
-                <div class="booking-detail">
-                  <span class="detail-label">Total</span>
-                  <span class="detail-value total-amount">Rs. {{ booking.totalAmount }}</span>
-                </div>
-              </div>
-
-              @if (canCancel(booking.status)) {
-                <div class="booking-actions">
-                  <button class="btn-cancel" (click)="cancelBooking(booking)">
-                    Cancel Booking
-                  </button>
+              }
+              @if (booking.assignedWasherName) {
+                <div class="detail-row">
+                  <span class="detail-label">Washer</span>
+                  <span class="detail-val">{{ booking.assignedWasherName }}</span>
                 </div>
               }
-
+              <div class="booking-total">Rs. {{ booking.totalAmount }}</div>
             </div>
-          }
-        </div>
-      }
-    }
 
-  </div>
+            @if (canCancel(booking.status)) {
+              <div class="booking-actions">
+                <button class="btn-cancel" (click)="cancelBooking(booking)">Cancel Booking</button>
+              </div>
+            }
+
+          </div>
+        }
+      </div>
+    }
+  }
+
 </div>

@@ -29,6 +29,14 @@ export class ReviewsComponent implements OnInit {
   successMsg = signal('');
 
   hoverRating = signal(0);
+  sortMode = signal('newest');
+  starFilter = signal(0);
+  sortOptions = [
+    { value: 'newest',       label: 'Newest First' },
+    { value: 'oldest',       label: 'Oldest First' },
+    { value: 'rating-high',  label: 'Rating: High to Low' },
+    { value: 'rating-low',   label: 'Rating: Low to High' }
+  ];
 
   formData = { bookingId: 0, rating: 0, comment: '' };
 
@@ -79,11 +87,15 @@ export class ReviewsComponent implements OnInit {
     return this.allReviews().filter(r => r.userId === myUserId);
   }
 
-  // Public reviews sorted by newest first
   get publicReviews(): Review[] {
-    return [...this.allReviews()].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    const sf = this.starFilter();
+    let list = sf > 0 ? this.allReviews().filter(r => r.rating === sf) : [...this.allReviews()];
+    switch (this.sortMode()) {
+      case 'oldest':       return list.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      case 'rating-high':  return list.sort((a, b) => b.rating - a.rating);
+      case 'rating-low':   return list.sort((a, b) => a.rating - b.rating);
+      default:             return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
   }
 
   get averageRating(): string {
@@ -172,6 +184,7 @@ export class ReviewsComponent implements OnInit {
         this.isSubmitting.set(false);
         this.closeForm();
         this.loadAllReviews();
+        setTimeout(() => this.successMsg.set(''), 4000);
       },
       error: (err) => {
         this.formError.set(err.error?.message || err.error || 'Unable to submit review. Please try again.');

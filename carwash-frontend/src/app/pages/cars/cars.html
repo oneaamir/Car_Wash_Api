@@ -1,197 +1,139 @@
 <div class="cars-page">
 
-  <!-- Page Header -->
-  <div class="page-header">
-    <div class="container">
-      <div class="header-row">
-        <div>
-          <h1>My Cars</h1>
-          <p>Manage all your registered vehicles in one place</p>
-        </div>
-        @if (!showForm()) {
-          <button class="btn btn-primary" (click)="openAddForm()">
-            + Add New Car
-          </button>
-        }
-      </div>
+  <!-- Page Title Row -->
+  <div class="page-title-row">
+    <div>
+      <h1 class="page-title">
+        My Cars
+        @if (cars().length > 0) { <span class="count-badge">{{ cars().length }}</span> }
+      </h1>
+      <p class="page-subtitle">Manage all your registered vehicles</p>
     </div>
+    @if (!showForm()) {
+      <button class="btn-primary-action" (click)="openAddForm()">+ Add New Car</button>
+    }
   </div>
 
-  <div class="container">
+  @if (successMsg()) { <div class="msg-success">{{ successMsg() }}</div> }
+  @if (errorMsg())   { <div class="msg-error">{{ errorMsg() }}</div> }
 
-    <!-- Success Message -->
-    @if (successMsg()) {
-      <div class="success-message">{{ successMsg() }}</div>
-    }
+  <!-- ADD / EDIT FORM -->
+  @if (showForm()) {
+    <div class="form-card">
+      <div class="form-card-header">
+        <h2>{{ isEditing() ? 'Edit Car' : 'Add New Car' }}</h2>
+        <button class="close-btn" (click)="closeForm()">✕</button>
+      </div>
 
-    <!-- Error Message -->
-    @if (errorMsg()) {
-      <div class="error-message">{{ errorMsg() }}</div>
-    }
+      @if (formError()) { <div class="msg-error">{{ formError() }}</div> }
 
-    <!-- ADD / EDIT FORM -->
-    @if (showForm()) {
-      <div class="form-card" id="car-form">
-        <div class="form-card-header">
-          <h2>{{ isEditing() ? 'Edit Car' : 'Add New Car' }}</h2>
-          <button class="close-btn" (click)="closeForm()">✕</button>
+      <form (ngSubmit)="onSubmit()" #carForm="ngForm">
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label>Car Number *</label>
+            <input type="text" name="carNumber" [(ngModel)]="formData.carNumber" required placeholder="e.g. MH12AB1234" #carNumberField="ngModel" />
+            @if (carNumberField.invalid && carNumberField.touched) {
+              <span class="field-error">Car number is required</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>Brand *</label>
+            <input type="text" name="brand" [(ngModel)]="formData.brand" required placeholder="e.g. Toyota, Honda" #brandField="ngModel" />
+            @if (brandField.invalid && brandField.touched) {
+              <span class="field-error">Brand is required</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>Model *</label>
+            <input type="text" name="model" [(ngModel)]="formData.model" required placeholder="e.g. Corolla, City" #modelField="ngModel" />
+            @if (modelField.invalid && modelField.touched) {
+              <span class="field-error">Model is required</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>Car Type *</label>
+            <select name="carType" [(ngModel)]="formData.carType" required #carTypeField="ngModel">
+              <option value="">-- Select Type --</option>
+              @for (type of carTypes; track type) {
+                <option [value]="type">{{ type }}</option>
+              }
+            </select>
+            @if (carTypeField.invalid && carTypeField.touched) {
+              <span class="field-error">Please select a car type</span>
+            }
+          </div>
+
+          <div class="form-group full-width">
+            <label>Car Image URL <span class="optional">(optional)</span></label>
+            <input type="text" name="imageUrl" [(ngModel)]="formData.imageUrl" placeholder="Paste image URL or leave blank" />
+          </div>
+
         </div>
 
-        @if (formError()) {
-          <div class="error-message">{{ formError() }}</div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary-action" [disabled]="isSubmitting() || carForm.invalid">
+            {{ isSubmitting() ? 'Saving...' : (isEditing() ? 'Update Car' : 'Add Car') }}
+          </button>
+          <button type="button" class="btn-secondary-action" (click)="closeForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="loading-grid">
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+    </div>
+  }
+
+  @if (!isLoading() && !errorMsg()) {
+    @if (cars().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">🚗</div>
+        <h3>No vehicles registered yet</h3>
+        <p>Add your first vehicle to start booking car wash services.</p>
+        @if (!showForm()) {
+          <button class="btn-primary-action" (click)="openAddForm()">+ Add Your First Car</button>
         }
-
-        <form (ngSubmit)="onSubmit()" #carForm="ngForm">
-          <div class="form-grid">
-
-            <div class="form-group">
-              <label for="carNumber">Car Number *</label>
-              <input
-                type="text"
-                id="carNumber"
-                name="carNumber"
-                [(ngModel)]="formData.carNumber"
-                required
-                placeholder="e.g. MH12AB1234"
-                #carNumberField="ngModel"
-              />
-              @if (carNumberField.invalid && carNumberField.touched) {
-                <span class="field-error">Car number is required</span>
-              }
-            </div>
-
-            <div class="form-group">
-              <label for="brand">Brand *</label>
-              <input
-                type="text"
-                id="brand"
-                name="brand"
-                [(ngModel)]="formData.brand"
-                required
-                placeholder="e.g. Toyota, Honda, Maruti"
-                #brandField="ngModel"
-              />
-              @if (brandField.invalid && brandField.touched) {
-                <span class="field-error">Brand is required</span>
-              }
-            </div>
-
-            <div class="form-group">
-              <label for="model">Model *</label>
-              <input
-                type="text"
-                id="model"
-                name="model"
-                [(ngModel)]="formData.model"
-                required
-                placeholder="e.g. Corolla, City, Swift"
-                #modelField="ngModel"
-              />
-              @if (modelField.invalid && modelField.touched) {
-                <span class="field-error">Model is required</span>
-              }
-            </div>
-
-            <div class="form-group">
-              <label for="carType">Car Type *</label>
-              <select
-                id="carType"
-                name="carType"
-                [(ngModel)]="formData.carType"
-                required
-                #carTypeField="ngModel"
-              >
-                <option value="">-- Select Type --</option>
-                @for (type of carTypes; track type) {
-                  <option [value]="type">{{ type }}</option>
-                }
-              </select>
-              @if (carTypeField.invalid && carTypeField.touched) {
-                <span class="field-error">Please select a car type</span>
-              }
-            </div>
-
-            <div class="form-group full-width">
-              <label for="imageUrl">Car Image URL <span class="optional">(optional — leave blank to use default icon)</span></label>
-              <input
-                type="text"
-                id="imageUrl"
-                name="imageUrl"
-                [(ngModel)]="formData.imageUrl"
-                placeholder="Paste image URL here, or leave blank"
-              />
-            </div>
-
-          </div>
-
-          <div class="form-actions">
-            <button
-              type="submit"
-              class="btn btn-primary"
-              [disabled]="isSubmitting() || carForm.invalid"
-            >
-              @if (isSubmitting()) {
-                Saving...
+      </div>
+    } @else {
+      <div class="list-toolbar">
+        <select class="sort-select" [ngModel]="sortOrder()" (ngModelChange)="sortOrder.set($event)">
+          @for (opt of sortOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="cars-grid">
+        @for (car of sortedCars; track car.id) {
+          <div class="car-card">
+            <div class="car-visual">
+              @if (car.imageUrl) {
+                <img [src]="car.imageUrl" [alt]="car.brand + ' ' + car.model" class="car-image" />
               } @else {
-                {{ isEditing() ? 'Update Car' : 'Add Car' }}
+                <div class="car-icon">{{ getCarIcon(car.carType) }}</div>
               }
-            </button>
-            <button type="button" class="btn btn-secondary" (click)="closeForm()">
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    }
-
-    <!-- CARS LIST -->
-    @if (isLoading()) {
-      <div class="loading-grid">
-        <div class="skeleton-card"></div>
-        <div class="skeleton-card"></div>
-        <div class="skeleton-card"></div>
-      </div>
-    }
-
-    @if (!isLoading() && !errorMsg()) {
-      @if (cars().length === 0) {
-        <div class="empty-state">
-          <span class="empty-icon">🚗</span>
-          <h3>No vehicles registered yet</h3>
-          <p>Add your first vehicle to start booking car wash services.</p>
-          @if (!showForm()) {
-            <button class="btn btn-primary" (click)="openAddForm()">+ Add Your First Car</button>
-          }
-        </div>
-      } @else {
-        <div class="cars-grid">
-          @for (car of cars(); track car.id) {
-            <div class="car-card">
-              <div class="car-visual">
-                @if (car.imageUrl) {
-                  <img [src]="car.imageUrl" [alt]="car.brand + ' ' + car.model" class="car-image" />
-                } @else {
-                  <div class="car-icon-placeholder">{{ getCarIcon(car.carType) }}</div>
-                }
-              </div>
-
-              <div class="car-info">
-                <div class="car-header">
-                  <h3 class="car-name">{{ car.brand }} {{ car.model }}</h3>
-                  <span class="car-type-badge">{{ car.carType }}</span>
-                </div>
-                <p class="car-number">🔢 {{ car.carNumber }}</p>
-              </div>
-
-              <div class="car-actions">
-                <button class="btn-edit" (click)="openEditForm(car)">Edit</button>
-                <button class="btn-delete" (click)="deleteCar(car)">Delete</button>
-              </div>
             </div>
-          }
-        </div>
-      }
+            <div class="car-info">
+              <h3 class="car-name">{{ car.brand }} {{ car.model }}</h3>
+              <span class="car-type-pill">{{ car.carType }}</span>
+              <p class="car-number">{{ car.carNumber }}</p>
+            </div>
+            <div class="car-actions">
+              <button class="btn-edit" (click)="openEditForm(car)">Edit</button>
+              <button class="btn-delete" (click)="deleteCar(car)">Delete</button>
+            </div>
+          </div>
+        }
+      </div>
     }
+  }
 
-  </div>
 </div>

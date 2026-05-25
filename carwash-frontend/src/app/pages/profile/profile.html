@@ -1,64 +1,53 @@
-<!-- Profile Page -->
-<div class="page-wrapper">
-  <div class="container">
+<div class="profile-page">
 
-    <!-- Loading State -->
-    @if (isLoading) {
-      <div class="loading">Loading your profile...</div>
-    }
+  @if (isLoading) {
+    <div class="loading-state">Loading your profile...</div>
+  }
 
-    <!-- Error State -->
-    @if (errorMessage) {
-      <div class="error-message">{{ errorMessage }}</div>
-    }
+  @if (errorMessage) {
+    <div class="msg-error">{{ errorMessage }}</div>
+  }
 
-    <!-- Profile Content -->
-    @if (profile && !isLoading) {
-      <div class="profile-layout">
-
-        <!-- Profile Card -->
-        <div class="profile-card card">
-          <div class="avatar">
-            {{ profile.fullName.charAt(0).toUpperCase() }}
-          </div>
-          <h2 class="profile-name">{{ profile.fullName }}</h2>
-          <span class="role-badge" [class]="getRoleColor()">
-            {{ profile.role }}
-          </span>
-          <p class="profile-email">{{ profile.email }}</p>
-          <button class="btn btn-danger logout-btn" (click)="logout()">
-            Logout
-          </button>
-        </div>
-
-        <!-- Info Card -->
-        <div class="info-card card">
-          <h3 class="section-title">Account Details</h3>
-
-          <div class="info-row">
-            <span class="info-label">Full Name</span>
-            <span class="info-value">{{ profile.fullName }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Email</span>
-            <span class="info-value">{{ profile.email }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Phone</span>
-            <span class="info-value">{{ profile.phone || 'Not provided' }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Account Type</span>
-            <span class="info-value">{{ profile.role }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Account ID</span>
-            <span class="info-value">#{{ profile.userId }}</span>
-          </div>
-        </div>
-
+  @if (profile && !isLoading) {
+    <div class="page-title-row">
+      <div>
+        <h1 class="page-title">My Profile</h1>
+        <p class="page-subtitle">Your account details and quick links</p>
       </div>
-    }
+    </div>
 
-  </div>
+    <div class="profile-layout">
+
+      <!-- Profile Card -->
+      <div class="profile-card">
+        <div class="avatar">{{ profile.fullName.charAt(0).toUpperCase() }}</div>
+        <h2 class="profile-name">{{ profile.fullName }}</h2>
+        <span class="role-badge" [class]="getRoleColor()">{{ profile.role }}</span>
+        <p class="profile-email">{{ profile.email }}</p>
+        <button class="btn-logout" (click)="logout()">Logout</button>
+      </div>
+
+      <!-- Info Card -->
+      <div class="info-card">
+        <div class="info-row">
+          <span class="info-label">Phone</span>
+          <span class="info-value">{{ profile.phone || 'Not provided' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Account ID</span>
+          <span class="info-value">#{{ profile.userId }}</span>
+        </div>
+
+        <h3 class="quick-links-title">Quick Links</h3>
+        <div class="quick-links">
+          <a routerLink="/bookings" class="quick-link-btn">📅 My Bookings</a>
+          <a routerLink="/cars"     class="quick-link-btn">🚗 My Cars</a>
+          <a routerLink="/payments" class="quick-link-btn">💳 My Payments</a>
+          <a routerLink="/reviews"  class="quick-link-btn">⭐ Reviews</a>
+        </div>
+      </div>
+
+    </div>
+  }
+
 </div>

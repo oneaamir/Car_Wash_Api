@@ -7,6 +7,7 @@ export interface Payment {
   paymentMethod: string;
   customerName: string;
   customerEmail: string;
+  createdAt: string;
   message: string;
 }
 

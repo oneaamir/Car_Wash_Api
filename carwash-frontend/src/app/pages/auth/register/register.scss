@@ -105,3 +105,24 @@ input.ng-invalid.ng-touched {
 .role-icon  { font-size: 1.6rem; }
 .role-label { font-weight: 700; font-size: 0.9rem; color: #111827; }
 .role-desc  { font-size: 0.75rem; color: #6b7280; }
+
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  input { flex: 1; padding-right: 44px; }
+
+  .toggle-pw {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 4px;
+    line-height: 1;
+    opacity: 0.6;
+    &:hover { opacity: 1; }
+  }
+}

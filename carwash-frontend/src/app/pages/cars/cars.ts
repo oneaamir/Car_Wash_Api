@@ -17,6 +17,12 @@ export class CarsComponent implements OnInit {
   cars = signal<Car[]>([]);
   isLoading = signal(true);
   errorMsg = signal('');
+  sortOrder = signal('newest');
+  sortOptions = [
+    { value: 'newest', label: 'Newest First' },
+    { value: 'oldest', label: 'Oldest First' },
+    { value: 'az',     label: 'Brand A–Z' }
+  ];
 
   // Form state
   showForm = signal(false);
@@ -36,6 +42,14 @@ export class CarsComponent implements OnInit {
   };
 
   carTypes = ['Sedan', 'SUV', 'Hatchback', 'Pickup', 'Van', 'Truck', 'Motorcycle', 'Other'];
+
+  get sortedCars(): Car[] {
+    switch (this.sortOrder()) {
+      case 'oldest': return [...this.cars()].sort((a, b) => a.id - b.id);
+      case 'az':     return [...this.cars()].sort((a, b) => a.brand.localeCompare(b.brand));
+      default:       return [...this.cars()].sort((a, b) => b.id - a.id);
+    }
+  }
 
   ngOnInit(): void {
     this.loadCars();
@@ -104,6 +118,7 @@ export class CarsComponent implements OnInit {
           this.isSubmitting.set(false);
           this.closeForm();
           this.loadCars();
+          setTimeout(() => this.successMsg.set(''), 4000);
         },
         error: (err) => {
           this.formError.set(err.error?.message || 'Update failed. Please try again.');
@@ -118,6 +133,7 @@ export class CarsComponent implements OnInit {
           this.isSubmitting.set(false);
           this.closeForm();
           this.loadCars();
+          setTimeout(() => this.successMsg.set(''), 4000);
         },
         error: (err) => {
           this.formError.set(err.error?.message || 'Could not add car. Please try again.');
@@ -134,6 +150,7 @@ export class CarsComponent implements OnInit {
       next: () => {
         this.successMsg.set('Vehicle removed successfully.');
         this.loadCars();
+        setTimeout(() => this.successMsg.set(''), 4000);
       },
       error: () => {
         this.errorMsg.set('Failed to remove vehicle. Please try again.');

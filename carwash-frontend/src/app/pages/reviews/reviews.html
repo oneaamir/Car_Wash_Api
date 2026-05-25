@@ -1,196 +1,184 @@
 <div class="reviews-page">
 
-  <!-- Page Header -->
-  <div class="page-header">
-    <div class="container">
-      <div class="header-row">
-        <div>
-          <h1>Customer Reviews</h1>
-          <p>See what our customers say about their car wash experience</p>
-        </div>
-        @if (authService.isLoggedIn() && reviewableBookings.length > 0 && !showForm()) {
-          <button class="btn btn-primary" (click)="openForm()">
-            + Write a Review
-          </button>
-        }
-      </div>
+  <!-- Page Title Row -->
+  <div class="page-title-row">
+    <div>
+      <h1 class="page-title">Customer Reviews</h1>
+      <p class="page-subtitle">See what our customers say about their car wash experience</p>
     </div>
+    @if (authService.isLoggedIn() && reviewableBookings.length > 0 && !showForm()) {
+      <button class="btn-primary-action" (click)="openForm()">+ Write a Review</button>
+    }
   </div>
 
-  <div class="container">
+  @if (successMsg()) { <div class="msg-success">{{ successMsg() }}</div> }
 
-    <!-- Success Message -->
-    @if (successMsg()) {
-      <div class="success-message">{{ successMsg() }}</div>
-    }
+  <!-- ====== WRITE REVIEW FORM ====== -->
+  @if (showForm()) {
+    <div class="form-card">
+      <div class="form-card-header">
+        <h2>Write a Review</h2>
+        <button class="close-btn" (click)="closeForm()">✕</button>
+      </div>
 
-    <!-- ====== WRITE REVIEW FORM ====== -->
-    @if (showForm()) {
-      <div class="form-card">
-        <div class="form-card-header">
-          <h2>Write a Review</h2>
-          <button class="close-btn" (click)="closeForm()">✕</button>
+      @if (formError()) { <div class="msg-error">{{ formError() }}</div> }
+
+      <form (ngSubmit)="onSubmit()">
+
+        <div class="form-group">
+          <label>Select Completed Booking *</label>
+          <select name="bookingId" [(ngModel)]="formData.bookingId" required>
+            <option [ngValue]="0">-- Select Booking --</option>
+            @for (booking of reviewableBookings; track booking.id) {
+              <option [ngValue]="booking.id">
+                #{{ booking.id }} — {{ booking.carBrand }} {{ booking.carModel }}
+                ({{ booking.servicePlanName }}) — {{ formatDate(booking.bookingDate) }}
+              </option>
+            }
+          </select>
         </div>
 
-        @if (formError()) {
-          <div class="error-message">{{ formError() }}</div>
-        }
-
-        <form (ngSubmit)="onSubmit()">
-
-          <!-- Booking Selection -->
-          <div class="form-group">
-            <label for="bookingId">Select Completed Booking *</label>
-            <select id="bookingId" name="bookingId" [(ngModel)]="formData.bookingId" required>
-              <option [ngValue]="0">-- Select Booking --</option>
-              @for (booking of reviewableBookings; track booking.id) {
-                <option [ngValue]="booking.id">
-                  #{{ booking.id }} — {{ booking.carBrand }} {{ booking.carModel }}
-                  ({{ booking.servicePlanName }}) — {{ formatDate(booking.bookingDate) }}
-                </option>
-              }
-            </select>
-          </div>
-
-          <!-- Star Rating -->
-          <div class="form-group">
-            <label>Rating *</label>
-            <div class="star-input" (mouseleave)="clearHover()">
-              @for (star of stars; track star) {
-                <span
-                  class="star-btn"
-                  [class.active]="isStarActive(star)"
-                  (click)="setRating(star)"
-                  (mouseenter)="setHover(star)"
-                >★</span>
-              }
-              @if (formData.rating) {
-                <span class="rating-label">{{ getRatingLabel(formData.rating) }}</span>
-              }
-            </div>
-          </div>
-
-          <!-- Comment -->
-          <div class="form-group">
-            <label for="comment">Comment <span class="optional">(optional)</span></label>
-            <textarea
-              id="comment"
-              name="comment"
-              [(ngModel)]="formData.comment"
-              placeholder="Share your experience — what did you like about the service?"
-              rows="3"
-            ></textarea>
-          </div>
-
-          <div class="form-actions">
-            <button
-              type="submit"
-              class="btn btn-primary"
-              [disabled]="isSubmitting() || !formData.bookingId || !formData.rating"
-            >
-              @if (isSubmitting()) {
-                Submitting...
-              } @else {
-                Submit Review
-              }
-            </button>
-            <button type="button" class="btn btn-secondary" (click)="closeForm()">Cancel</button>
-          </div>
-
-        </form>
-      </div>
-    }
-
-    <!-- Not logged in CTA -->
-    @if (!authService.isLoggedIn()) {
-      <div class="login-cta">
-        <p>Had a car wash with us? <a routerLink="/login">Login</a> to share your experience.</p>
-      </div>
-    }
-
-    <!-- All reviews done, no more to review -->
-    @if (authService.isLoggedIn() && reviewableBookings.length === 0 && myCompletedBookings().length > 0 && !showForm()) {
-      <div class="info-banner">
-        You have reviewed all your completed bookings. Thank you for your feedback!
-      </div>
-    }
-
-    <!-- ====== REVIEWS WALL ====== -->
-    @if (isLoadingReviews()) {
-      <div class="loading-grid">
-        <div class="skeleton-card"></div>
-        <div class="skeleton-card"></div>
-        <div class="skeleton-card"></div>
-      </div>
-    }
-
-    @if (!isLoadingReviews()) {
-
-      <!-- Stats Bar -->
-      @if (publicReviews.length > 0) {
-        <div class="stats-bar">
-          <div class="stat">
-            <span class="stat-number">{{ publicReviews.length }}</span>
-            <span class="stat-label">Total Reviews</span>
-          </div>
-          <div class="stat">
-            <span class="stat-number">{{ averageRating }}</span>
-            <span class="stat-label">Average Rating</span>
-          </div>
-          <div class="stat">
-            <span class="stat-stars">{{ averageRatingStars }}</span>
-            <span class="stat-label">Out of 5</span>
+        <div class="form-group">
+          <label>Rating *</label>
+          <div class="star-input" (mouseleave)="clearHover()">
+            @for (star of stars; track star) {
+              <span
+                class="star-btn"
+                [class.active]="isStarActive(star)"
+                (click)="setRating(star)"
+                (mouseenter)="setHover(star)"
+              >★</span>
+            }
+            @if (formData.rating) {
+              <span class="rating-label">{{ getRatingLabel(formData.rating) }}</span>
+            }
           </div>
         </div>
-      }
 
-      @if (publicReviews.length === 0) {
-        <div class="empty-state">
-          <span class="empty-icon">⭐</span>
-          <h3>No reviews yet</h3>
-          <p>Be the first to review your car wash experience.</p>
+        <div class="form-group">
+          <label>Comment <span class="optional">(optional)</span></label>
+          <textarea
+            name="comment"
+            [(ngModel)]="formData.comment"
+            placeholder="Share your experience — what did you like about the service?"
+            rows="3"
+          ></textarea>
         </div>
-      } @else {
-        <div class="reviews-grid">
-          @for (review of publicReviews; track review.id) {
-            <div class="review-card" [class.my-review]="isMyReview(review)">
 
-              <div class="review-header">
-                <div class="reviewer-info">
-                  <div class="reviewer-avatar">
-                    {{ isMyReview(review) ? '👤' : '🙂' }}
-                  </div>
-                  <div>
-                    <div class="reviewer-name">
-                      @if (isMyReview(review)) {
-                        You
-                        <span class="my-badge">Your Review</span>
-                      } @else {
-                        Verified Customer
-                      }
-                    </div>
-                    <div class="review-date">{{ formatDate(review.createdAt) }}</div>
-                  </div>
-                </div>
-                <div class="review-stars">{{ getStars(review.rating) }}</div>
-              </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary-action" [disabled]="isSubmitting() || !formData.bookingId || !formData.rating">
+            {{ isSubmitting() ? 'Submitting...' : 'Submit Review' }}
+          </button>
+          <button type="button" class="btn-secondary-action" (click)="closeForm()">Cancel</button>
+        </div>
 
-              @if (review.comment) {
-                <p class="review-comment">"{{ review.comment }}"</p>
-              }
+      </form>
+    </div>
+  }
 
-              <div class="review-footer">
-                <span class="booking-ref">Booking #{{ review.bookingId }}</span>
-                <span class="rating-badge rating-{{ review.rating }}">
-                  {{ getRatingLabel(review.rating) }}
-                </span>
-              </div>
+  @if (!authService.isLoggedIn()) {
+    <div class="login-cta">
+      <p>Had a car wash with us? <a routerLink="/login">Login</a> to share your experience.</p>
+    </div>
+  }
 
-            </div>
+  @if (authService.isLoggedIn() && reviewableBookings.length === 0 && myCompletedBookings().length > 0 && !showForm()) {
+    <div class="info-banner">
+      You have reviewed all your completed bookings. Thank you for your feedback!
+    </div>
+  }
+
+  <!-- Reviews Wall -->
+  @if (isLoadingReviews()) {
+    <div class="loading-grid">
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+    </div>
+  }
+
+  @if (!isLoadingReviews()) {
+
+    @if (publicReviews.length > 0) {
+      <div class="stats-bar">
+        <div class="stat">
+          <span class="stat-number">{{ publicReviews.length }}</span>
+          <span class="stat-label">Total Reviews</span>
+        </div>
+        <div class="stat">
+          <span class="stat-number">{{ averageRating }}</span>
+          <span class="stat-label">Average Rating</span>
+        </div>
+        <div class="stat">
+          <span class="stat-stars">{{ averageRatingStars }}</span>
+          <span class="stat-label">Out of 5</span>
+        </div>
+      </div>
+    }
+
+    @if (allReviews().length > 0) {
+      <div class="reviews-filter-bar">
+        <div class="star-filter-chips">
+          <button class="chip" [class.active]="starFilter() === 0" (click)="starFilter.set(0)">All Stars</button>
+          @for (s of stars; track s) {
+            <button class="chip" [class.active]="starFilter() === s" (click)="starFilter.set(s)">{{ s }}★</button>
           }
         </div>
-      }
+        <select class="sort-select" [ngModel]="sortMode()" (ngModelChange)="sortMode.set($event)">
+          @for (opt of sortOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
     }
 
-  </div>
+    @if (publicReviews.length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">⭐</div>
+        <h3>
+          @if (starFilter() > 0) { No {{ starFilter() }}-star reviews }
+          @else { No reviews yet }
+        </h3>
+        <p>
+          @if (starFilter() > 0) { <button class="link-btn" (click)="starFilter.set(0)">Show all reviews</button> }
+          @else { Be the first to review your car wash experience. }
+        </p>
+      </div>
+    } @else {
+      <div class="reviews-grid">
+        @for (review of publicReviews; track review.id) {
+          <div class="review-card" [class.my-review]="isMyReview(review)">
+
+            <div class="review-header">
+              <div class="reviewer-info">
+                <div class="reviewer-avatar">{{ isMyReview(review) ? '👤' : '🙂' }}</div>
+                <div>
+                  <div class="reviewer-name">
+                    @if (isMyReview(review)) {
+                      You <span class="my-badge">Your Review</span>
+                    } @else {
+                      Verified Customer
+                    }
+                  </div>
+                  <div class="review-date">{{ formatDate(review.createdAt) }}</div>
+                </div>
+              </div>
+              <div class="review-stars">{{ getStars(review.rating) }}</div>
+            </div>
+
+            @if (review.comment) {
+              <p class="review-comment">"{{ review.comment }}"</p>
+            }
+
+            <div class="review-footer">
+              <span class="booking-ref">Booking #{{ review.bookingId }}</span>
+              <span class="rating-badge rating-{{ review.rating }}">{{ getRatingLabel(review.rating) }}</span>
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+  }
+
 </div>

@@ -22,6 +22,13 @@ export class PaymentsComponent implements OnInit {
   myBookings = signal<Booking[]>([]);
   paymentFilter = signal('All');
   paymentFilters = ['All', 'Pending', 'Success', 'Failed'];
+  sortOrder = signal('newest');
+  sortOptions = [
+    { value: 'newest',      label: 'Newest First' },
+    { value: 'oldest',      label: 'Oldest First' },
+    { value: 'amount-high', label: 'Amount: High to Low' },
+    { value: 'amount-low',  label: 'Amount: Low to High' }
+  ];
 
   isLoadingPayments = signal(true);
   isLoadingReceipts = signal(true);
@@ -71,7 +78,19 @@ export class PaymentsComponent implements OnInit {
 
   get filteredPayments(): Payment[] {
     const f = this.paymentFilter();
-    return f === 'All' ? this.payments() : this.payments().filter(p => p.paymentStatus === f);
+    let list = f === 'All' ? this.payments() : this.payments().filter(p => p.paymentStatus === f);
+    switch (this.sortOrder()) {
+      case 'oldest':      return [...list].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      case 'amount-high': return [...list].sort((a, b) => b.amount - a.amount);
+      case 'amount-low':  return [...list].sort((a, b) => a.amount - b.amount);
+      default:            return [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+  }
+
+  get totalPaid(): number {
+    return this.payments()
+      .filter(p => p.paymentStatus === 'Success')
+      .reduce((sum, p) => sum + p.amount, 0);
   }
 
   // Only show bookings that don't have a payment yet
@@ -101,6 +120,7 @@ export class PaymentsComponent implements OnInit {
         this.closeForm();
         this.loadPayments();
         this.loadMyBookings();
+        setTimeout(() => this.successMsg.set(''), 5000);
       },
       error: (err) => {
         this.formError.set(err.error?.message || err.error || 'Payment could not be processed. Please try again.');

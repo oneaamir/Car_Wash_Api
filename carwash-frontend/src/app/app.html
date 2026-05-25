@@ -1,14 +1,21 @@
-<!-- App Root Template -->
-<!-- Yeh poori app ka main layout hai -->
-<!-- Header + Main Content + Footer -->
-
-<app-header></app-header>
-
-<!-- router-outlet = Angular ka magic tag -->
-<!-- Jis URL pe jao, us URL ka component yahan render hoga -->
-<!-- Jaise: /home pe HomeComponent yahan dikhe ga -->
-<main class="main-content">
-  <router-outlet></router-outlet>
-</main>
-
-<app-footer></app-footer>
+@if (isCustomerLayout()) {
+  <div class="customer-app-layout">
+    <app-customer-sidebar></app-customer-sidebar>
+    <main class="customer-main-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+} @else if (isAdminLayout()) {
+  <div class="admin-app-layout">
+    <app-admin-sidebar></app-admin-sidebar>
+    <main class="admin-main-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+} @else {
+  <app-header></app-header>
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+  <app-footer></app-footer>
+}

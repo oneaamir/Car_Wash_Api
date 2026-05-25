@@ -20,15 +20,39 @@
       <div class="error-message">{{ updateError() }}</div>
     }
 
-    <!-- Status Filter Chips -->
-    <div class="filter-chips">
-      @for (s of statusFilters; track s) {
-        <button
-          class="chip"
-          [class.active]="statusFilter() === s"
-          (click)="statusFilter.set(s)"
-        >{{ s }}</button>
-      }
+    <!-- Today's Summary -->
+    @if (!isLoading() && todaysSummary.total > 0) {
+      <div class="daily-summary">
+        <span class="summary-title">Today's Jobs:</span>
+        <span class="summary-chip">{{ todaysSummary.total }} Total</span>
+        @if (todaysSummary.confirmed > 0) {
+          <span class="summary-chip chip-confirmed">{{ todaysSummary.confirmed }} Confirmed</span>
+        }
+        @if (todaysSummary.inProgress > 0) {
+          <span class="summary-chip chip-inprogress">{{ todaysSummary.inProgress }} In Progress</span>
+        }
+        @if (todaysSummary.completed > 0) {
+          <span class="summary-chip chip-completed">{{ todaysSummary.completed }} Completed</span>
+        }
+      </div>
+    }
+
+    <!-- Filter & Sort Bar -->
+    <div class="filter-sort-bar">
+      <div class="filter-chips">
+        @for (s of statusFilters; track s) {
+          <button
+            class="chip"
+            [class.active]="statusFilter() === s"
+            (click)="statusFilter.set(s)"
+          >{{ s }}</button>
+        }
+      </div>
+      <select class="sort-select" [ngModel]="sortOrder()" (ngModelChange)="sortOrder.set($event)">
+        @for (opt of sortOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
     </div>
 
     <!-- Loading -->
@@ -57,7 +81,7 @@
       } @else {
         <div class="jobs-list">
           @for (booking of filteredBookings; track booking.id) {
-            <div class="job-card" [class.card-completed]="booking.status === 'Completed'">
+            <div [class]="'job-card jstatus-' + booking.status.toLowerCase()" [class.card-completed]="booking.status === 'Completed'">
 
               <div class="job-header">
                 <div class="job-header-left">
@@ -70,32 +94,40 @@
               </div>
 
               <div class="job-body">
+                @if (booking.customerName) {
+                  <div class="customer-strip">
+                    <span class="customer-name">👤 {{ booking.customerName }}</span>
+                    @if (booking.customerPhone) {
+                      <a href="tel:{{ booking.customerPhone }}" class="customer-phone">📞 {{ booking.customerPhone }}</a>
+                    }
+                  </div>
+                }
                 <div class="info-block">
-                  <span class="info-label">Vehicle</span>
+                  <span class="info-label">🚗 Vehicle</span>
                   <span class="info-value">
                     {{ booking.carBrand }} {{ booking.carModel }}
                     <small>({{ booking.carNumber }})</small>
                   </span>
                 </div>
                 <div class="info-block">
-                  <span class="info-label">Service</span>
+                  <span class="info-label">🔧 Service</span>
                   <span class="info-value">{{ booking.servicePlanName }}</span>
                 </div>
                 <div class="info-block">
-                  <span class="info-label">Date</span>
+                  <span class="info-label">📅 Date</span>
                   <span class="info-value">{{ formatDate(booking.bookingDate) }}</span>
                 </div>
                 <div class="info-block">
-                  <span class="info-label">Amount</span>
+                  <span class="info-label">💰 Amount</span>
                   <span class="info-value amount">Rs. {{ booking.totalAmount }}</span>
                 </div>
                 <div class="info-block full-width">
-                  <span class="info-label">Address</span>
+                  <span class="info-label">📍 Address</span>
                   <span class="info-value">{{ booking.address }}</span>
                 </div>
                 @if (booking.addOnNames.length) {
                   <div class="info-block full-width">
-                    <span class="info-label">Add-Ons</span>
+                    <span class="info-label">➕ Add-Ons</span>
                     <span class="info-value">
                       @for (name of booking.addOnNames; track name) {
                         <span class="addon-tag">{{ name }}</span>
@@ -105,7 +137,7 @@
                 }
                 @if (booking.notes) {
                   <div class="info-block full-width">
-                    <span class="info-label">Notes</span>
+                    <span class="info-label">📝 Notes</span>
                     <span class="info-value notes">{{ booking.notes }}</span>
                   </div>
                 }

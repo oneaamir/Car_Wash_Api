@@ -234,6 +234,10 @@ public class BookingService : IBookingService
             Notes = booking.Notes ?? string.Empty,
             Status = booking.Status,
             TotalAmount = booking.TotalAmount,
+            CustomerName = booking.User?.FullName ?? string.Empty,
+            CustomerPhone = booking.User?.Phone ?? string.Empty,
+            ServicePlanDescription = booking.ServicePlan?.Description ?? string.Empty,
+            CreatedAt = booking.CreatedAt,
             Message = message
         };
     }

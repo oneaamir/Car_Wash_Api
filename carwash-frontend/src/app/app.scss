@@ -3,3 +3,35 @@
 .main-content {
   min-height: calc(100vh - 130px);
 }
+
+/* Customer sidebar layout */
+.customer-app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.customer-main-content {
+  margin-left: 240px;
+  flex: 1;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+@media (max-width: 768px) {
+  .customer-main-content {
+    margin-left: 0;
+  }
+}
+
+/* Admin sidebar layout */
+.admin-app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-main-content {
+  margin-left: 240px;
+  flex: 1;
+  background: #f9fafb;
+  min-height: 100vh;
+}

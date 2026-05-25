@@ -20,6 +20,7 @@ export class LoginComponent {
     password: ''
   };
 
+  showPassword = false;
   isLoading = false;     // Submit button disable karne ke liye loading mein
   errorMessage = '';     // Backend se error aaye to dikhao
   successMessage = '';   // Success message
@@ -47,7 +48,7 @@ export class LoginComponent {
         } else if (response.role === 'Washer') {
           this.router.navigate(['/washer']);
         } else {
-          this.router.navigate(['/']); // Customer → Home
+          this.router.navigate(['/dashboard']); // Customer → Dashboard
         }
       },
       // error: kuch galat hone par chalega

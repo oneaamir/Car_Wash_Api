@@ -1,11 +1,11 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, inject, signal, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
 import { AdminService } from '../../core/services/admin.service';
-import { AdminBooking, AdminUser, PromoCode, BookingReport, RevenueReport, PaymentMethodSummary } from '../../models/admin.models';
+import { AdminTabService } from '../../core/services/admin-tab.service';
+import { AdminBooking, AdminUser, PromoCode, BookingReport, RevenueReport, ReportFilter } from '../../models/admin.models';
 import { Payment } from '../../models/payment.models';
 import { ServicePlan, AddOn } from '../../models/services.models';
-
-type AdminTab = 'bookings' | 'users' | 'payments' | 'services' | 'promos' | 'reports';
 
 @Component({
   selector: 'app-admin',
@@ -14,19 +14,18 @@ type AdminTab = 'bookings' | 'users' | 'payments' | 'services' | 'promos' | 'rep
   templateUrl: './admin.html',
   styleUrl: './admin.scss'
 })
-export class AdminComponent implements OnInit {
+export class AdminComponent {
   private adminService = inject(AdminService);
+  tabService = inject(AdminTabService);
 
-  activeTab = signal<AdminTab>('bookings');
-
-  // ---- Bookings & Users ----
+  // ---- Bookings ----
   allBookings = signal<AdminBooking[]>([]);
-  allUsers    = signal<AdminUser[]>([]);
-  isLoadingBookings = signal(true);
-  isLoadingUsers    = signal(true);
+  isLoadingBookings = signal(false);
   pageError  = signal('');
   successMsg = signal('');
   statusFilter  = signal('All');
+  bookingSearch = signal('');
+  bookingSortOrder = signal('newest');
   assigningId   = signal<number | null>(null);
   assignWasherId = signal(0);
   isAssigning   = signal(false);
@@ -35,25 +34,46 @@ export class AdminComponent implements OnInit {
   isUpdating    = signal(false);
   updateError   = signal('');
   statusFilters = ['All', 'Pending', 'Confirmed', 'InProgress', 'Completed', 'Cancelled'];
+  bookingSortOptions = [
+    { value: 'newest',      label: 'Newest First' },
+    { value: 'oldest',      label: 'Oldest First' },
+    { value: 'amount-high', label: 'Amount: High to Low' },
+    { value: 'amount-low',  label: 'Amount: Low to High' }
+  ];
 
-  // ---- Services (Plans + AddOns) ----
-  allPlans   = signal<ServicePlan[]>([]);
-  allAddOns  = signal<AddOn[]>([]);
+  // ---- Users ----
+  allUsers        = signal<AdminUser[]>([]);
+  isLoadingUsers  = signal(false);
+  userSearch      = signal('');
+  userRoleFilter  = signal('All');
+  userRoleFilters = ['All', 'Customer', 'Washer', 'Admin'];
+  userSortOrder   = signal('newest');
+  userSortOptions = [
+    { value: 'newest', label: 'Newest First' },
+    { value: 'oldest', label: 'Oldest First' },
+    { value: 'az',     label: 'Name A–Z' }
+  ];
+  washerSearch   = signal('');
+  customerSearch = signal('');
+
+  // ---- Services ----
+  allPlans  = signal<ServicePlan[]>([]);
+  allAddOns = signal<AddOn[]>([]);
   isLoadingServices = signal(false);
   servicesError     = signal('');
   private servicesLoaded = false;
 
-  showPlanForm    = signal(false);
-  editingPlanId   = signal<number | null>(null);
-  planFormData    = { name: '', description: '', price: 0 };
-  isPlanSaving    = signal(false);
-  planFormError   = signal('');
+  showPlanForm  = signal(false);
+  editingPlanId = signal<number | null>(null);
+  planFormData  = { name: '', description: '', price: 0 };
+  isPlanSaving  = signal(false);
+  planFormError = signal('');
 
-  showAddonForm   = signal(false);
-  editingAddonId  = signal<number | null>(null);
-  addonFormData   = { name: '', price: 0 };
-  isAddonSaving   = signal(false);
-  addonFormError  = signal('');
+  showAddonForm  = signal(false);
+  editingAddonId = signal<number | null>(null);
+  addonFormData  = { name: '', price: 0 };
+  isAddonSaving  = signal(false);
+  addonFormError = signal('');
 
   // ---- Promo Codes ----
   allPromoCodes   = signal<PromoCode[]>([]);
@@ -61,18 +81,33 @@ export class AdminComponent implements OnInit {
   promosError     = signal('');
   private promosLoaded = false;
 
-  showPromoForm   = signal(false);
-  editingPromoId  = signal<number | null>(null);
-  promoFormData   = { code: '', discountType: 'Percentage', discountValue: 0, expiryDate: '' };
-  isPromoSaving   = signal(false);
-  promoFormError  = signal('');
-  discountTypes   = ['Percentage', 'Fixed'];
+  showPromoForm  = signal(false);
+  editingPromoId = signal<number | null>(null);
+  promoFormData  = { code: '', discountType: 'Percentage', discountValue: 0, expiryDate: '' };
+  isPromoSaving  = signal(false);
+  promoFormError = signal('');
+  discountTypes  = ['Percentage', 'Fixed'];
+  promoSortOrder = signal('expiry-asc');
+  promoSortOptions = [
+    { value: 'expiry-asc',  label: 'Expiry: Soonest First' },
+    { value: 'expiry-desc', label: 'Expiry: Latest First' },
+    { value: 'az',          label: 'Code A–Z' }
+  ];
+  copiedPromoId = signal<number | null>(null);
 
   // ---- Payments ----
-  allPayments       = signal<Payment[]>([]);
-  isLoadingPayments = signal(false);
-  paymentsError     = signal('');
+  allPayments         = signal<Payment[]>([]);
+  isLoadingPayments   = signal(false);
+  paymentsError       = signal('');
   paymentStatusFilter = signal('All');
+  paymentSearch       = signal('');
+  paymentSortOrder    = signal('newest');
+  paymentSortOptions  = [
+    { value: 'newest',      label: 'Newest First' },
+    { value: 'oldest',      label: 'Oldest First' },
+    { value: 'amount-high', label: 'Amount: High to Low' },
+    { value: 'amount-low',  label: 'Amount: Low to High' }
+  ];
   updatingPaymentId   = signal<number | null>(null);
   isUpdatingPayment   = signal(false);
   updatePaymentError  = signal('');
@@ -80,10 +115,10 @@ export class AdminComponent implements OnInit {
   private paymentsLoaded = false;
 
   // ---- Reports ----
-  reportMonth = signal(new Date().getMonth() + 1);  // 1–12
-  reportYear  = signal(new Date().getFullYear());
-  bookingReport   = signal<BookingReport | null>(null);
-  revenueReport   = signal<RevenueReport | null>(null);
+  reportMonth   = signal(new Date().getMonth() + 1);
+  reportYear    = signal(new Date().getFullYear());
+  bookingReport = signal<BookingReport | null>(null);
+  revenueReport = signal<RevenueReport | null>(null);
   isLoadingReport = signal(false);
   reportError     = signal('');
 
@@ -96,29 +131,142 @@ export class AdminComponent implements OnInit {
     { value: 11, label: 'November' }, { value: 12, label: 'December' }
   ];
 
+  // ---- Overview ----
+  todayBookingReport = signal<BookingReport | null>(null);
+  todayRevenueReport = signal<RevenueReport | null>(null);
+  isLoadingOverview  = signal(false);
+  private overviewLoaded = false;
+  private bookingsLoaded = false;
+  private usersLoaded    = false;
+
+  constructor() {
+    effect(() => {
+      const tab = this.tabService.activeTab();
+      if (tab === 'overview')                                               this.loadOverview();
+      if (tab === 'bookings' && !this.bookingsLoaded)                       this.loadBookings();
+      if ((tab === 'washers' || tab === 'customers') && !this.usersLoaded)  this.loadUsers();
+      if (tab === 'payments' && !this.paymentsLoaded)                       this.loadPayments();
+      if (tab === 'services' && !this.servicesLoaded)                       this.loadServices();
+      if (tab === 'promos'   && !this.promosLoaded)                         this.loadPromoCodes();
+      if (tab === 'reports')                                                this.loadReports();
+    });
+  }
+
   get reportYears(): number[] {
     const current = new Date().getFullYear();
     return [current - 1, current, current + 1];
   }
 
-  ngOnInit(): void {
-    this.loadBookings();
-    this.loadUsers();
-  }
-
   // ========== Tab ==========
-  setTab(tab: AdminTab): void {
-    this.activeTab.set(tab);
+  setTab(tab: string): void {
+    this.tabService.activeTab.set(tab);
     this.closeAssign();
     this.closeUpdate();
-    if (tab === 'services'  && !this.servicesLoaded)  this.loadServices();
-    if (tab === 'promos'    && !this.promosLoaded)    this.loadPromoCodes();
-    if (tab === 'payments'  && !this.paymentsLoaded)  this.loadPayments();
-    if (tab === 'reports')                            this.loadReports();
+  }
+
+  // ========== Overview ==========
+  loadOverview(): void {
+    if (this.overviewLoaded) return;
+    this.overviewLoaded = true;
+    this.isLoadingOverview.set(true);
+    const today = new Date().toISOString().split('T')[0];
+    const filter: ReportFilter = { dateFrom: today, dateTo: today };
+    forkJoin({
+      bookingReport: this.adminService.getBookingReport(filter),
+      revenueReport: this.adminService.getRevenueReport(filter),
+      bookings: this.bookingsLoaded ? of(this.allBookings()) : this.adminService.getAllBookings(),
+      users:    this.usersLoaded   ? of(this.allUsers())    : this.adminService.getUsers(),
+      payments: this.paymentsLoaded? of(this.allPayments()) : this.adminService.getAllPayments(),
+    }).subscribe({
+      next: ({ bookingReport, revenueReport, bookings, users, payments }) => {
+        this.todayBookingReport.set(bookingReport);
+        this.todayRevenueReport.set(revenueReport);
+        if (!this.bookingsLoaded) { this.allBookings.set(bookings); this.bookingsLoaded = true; }
+        if (!this.usersLoaded)    { this.allUsers.set(users);       this.usersLoaded = true; }
+        if (!this.paymentsLoaded) { this.allPayments.set(payments); this.paymentsLoaded = true; }
+        this.isLoadingOverview.set(false);
+      },
+      error: () => this.isLoadingOverview.set(false)
+    });
+  }
+
+  get needsAssignment(): AdminBooking[] {
+    return this.allBookings()
+      .filter(b => b.status === 'Pending' && !b.assignedWasherId)
+      .sort((a, b) => new Date(a.bookingDate).getTime() - new Date(b.bookingDate).getTime())
+      .slice(0, 6);
+  }
+
+  get liveActivity(): Array<{ text: string; time: string; type: string }> {
+    const bookings = this.allBookings().map(b => ({
+      text: `${b.customerName} booked ${b.servicePlanName}`,
+      time: b.createdAt,
+      type: 'booking'
+    }));
+    const payments = this.allPayments()
+      .filter(p => p.paymentStatus === 'Success')
+      .map(p => ({
+        text: `Payment Rs.${p.amount} received${p.customerName ? ' · ' + p.customerName : ''}`,
+        time: p.createdAt,
+        type: 'payment'
+      }));
+    return [...bookings, ...payments]
+      .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+      .slice(0, 6);
+  }
+
+  get washerStatus(): Array<AdminUser & { currentStatus: string }> {
+    return this.allUsers()
+      .filter(u => u.role === 'Washer' && u.isActive)
+      .map(w => ({
+        ...w,
+        currentStatus: this.allBookings().some(
+          b => b.assignedWasherId === w.id && b.status === 'InProgress'
+        ) ? 'On a job' : 'Available'
+      }));
+  }
+
+  get activeWashersOnJob(): number {
+    return this.washerStatus.filter(w => w.currentStatus === 'On a job').length;
+  }
+
+  get filteredWashers(): AdminUser[] {
+    const q = this.washerSearch().toLowerCase();
+    return this.allUsers()
+      .filter(u => u.role === 'Washer')
+      .filter(u => !q || u.fullName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+  }
+
+  get filteredCustomers(): AdminUser[] {
+    const q = this.customerSearch().toLowerCase();
+    return this.allUsers()
+      .filter(u => u.role === 'Customer')
+      .filter(u => !q || u.fullName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+  }
+
+  timeAgo(dateStr: string): string {
+    if (!dateStr) return '';
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1)  return 'just now';
+    if (mins < 60) return `${mins} min ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24)  return `${hrs} hr ago`;
+    return `${Math.floor(hrs / 24)} days ago`;
+  }
+
+  getInitials(name: string): string {
+    return (name || '').split(' ').filter(w => w).map(w => w[0].toUpperCase()).slice(0, 2).join('');
+  }
+
+  goAssignBooking(booking: AdminBooking): void {
+    this.setTab('bookings');
+    setTimeout(() => this.openAssign(booking.id, booking.assignedWasherId), 150);
   }
 
   // ========== Bookings ==========
   loadBookings(): void {
+    this.bookingsLoaded = true;
     this.isLoadingBookings.set(true);
     this.adminService.getAllBookings().subscribe({
       next: (data) => { this.allBookings.set(data); this.isLoadingBookings.set(false); },
@@ -127,6 +275,7 @@ export class AdminComponent implements OnInit {
   }
 
   loadUsers(): void {
+    this.usersLoaded = true;
     this.isLoadingUsers.set(true);
     this.adminService.getUsers().subscribe({
       next: (data) => { this.allUsers.set(data); this.isLoadingUsers.set(false); },
@@ -136,7 +285,38 @@ export class AdminComponent implements OnInit {
 
   get filteredBookings(): AdminBooking[] {
     const f = this.statusFilter();
-    return f === 'All' ? this.allBookings() : this.allBookings().filter(b => b.status === f);
+    const q = this.bookingSearch().toLowerCase().trim();
+    let list = f === 'All' ? this.allBookings() : this.allBookings().filter(b => b.status === f);
+    if (q) {
+      list = list.filter(b =>
+        b.customerName.toLowerCase().includes(q) ||
+        b.carNumber.toLowerCase().includes(q) ||
+        String(b.id).includes(q)
+      );
+    }
+    switch (this.bookingSortOrder()) {
+      case 'oldest':      return [...list].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      case 'amount-high': return [...list].sort((a, b) => b.totalAmount - a.totalAmount);
+      case 'amount-low':  return [...list].sort((a, b) => a.totalAmount - b.totalAmount);
+      default:            return [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+  }
+
+  get filteredUsers(): AdminUser[] {
+    const q  = this.userSearch().toLowerCase().trim();
+    const rf = this.userRoleFilter();
+    let list = rf === 'All' ? this.allUsers() : this.allUsers().filter(u => u.role === rf);
+    if (q) {
+      list = list.filter(u =>
+        u.fullName.toLowerCase().includes(q) ||
+        u.email.toLowerCase().includes(q)
+      );
+    }
+    switch (this.userSortOrder()) {
+      case 'oldest': return [...list].sort((a, b) => a.id - b.id);
+      case 'az':     return [...list].sort((a, b) => a.fullName.localeCompare(b.fullName));
+      default:       return [...list].sort((a, b) => b.id - a.id);
+    }
   }
 
   get washers(): AdminUser[] {
@@ -367,6 +547,21 @@ export class AdminComponent implements OnInit {
     });
   }
 
+  get sortedPromoCodes(): PromoCode[] {
+    switch (this.promoSortOrder()) {
+      case 'expiry-desc': return [...this.allPromoCodes()].sort((a, b) => new Date(b.expiryDate).getTime() - new Date(a.expiryDate).getTime());
+      case 'az':          return [...this.allPromoCodes()].sort((a, b) => a.code.localeCompare(b.code));
+      default:            return [...this.allPromoCodes()].sort((a, b) => new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime());
+    }
+  }
+
+  copyPromoCode(promo: PromoCode): void {
+    navigator.clipboard.writeText(promo.code).then(() => {
+      this.copiedPromoId.set(promo.id);
+      setTimeout(() => this.copiedPromoId.set(null), 2000);
+    });
+  }
+
   deletePromo(promo: PromoCode): void {
     if (!confirm(`Delete promo code "${promo.code}"?`)) return;
     this.adminService.deletePromoCode(promo.id).subscribe({
@@ -387,7 +582,32 @@ export class AdminComponent implements OnInit {
 
   get filteredPayments(): Payment[] {
     const f = this.paymentStatusFilter();
-    return f === 'All' ? this.allPayments() : this.allPayments().filter(p => p.paymentStatus === f);
+    const q = this.paymentSearch().toLowerCase().trim();
+    let list = f === 'All' ? this.allPayments() : this.allPayments().filter(p => p.paymentStatus === f);
+    if (q) {
+      list = list.filter(p =>
+        p.customerName.toLowerCase().includes(q) ||
+        String(p.bookingId).includes(q)
+      );
+    }
+    switch (this.paymentSortOrder()) {
+      case 'oldest':      return [...list].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      case 'amount-high': return [...list].sort((a, b) => b.amount - a.amount);
+      case 'amount-low':  return [...list].sort((a, b) => a.amount - b.amount);
+      default:            return [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+  }
+
+  get paymentSummary(): { pending: number; pendingTotal: number; collected: number; collectedTotal: number } {
+    const all = this.allPayments();
+    const pending = all.filter(p => p.paymentStatus === 'Pending');
+    const success = all.filter(p => p.paymentStatus === 'Success');
+    return {
+      pending:        pending.length,
+      pendingTotal:   pending.reduce((s, p) => s + p.amount, 0),
+      collected:      success.length,
+      collectedTotal: success.reduce((s, p) => s + p.amount, 0)
+    };
   }
 
   getNextPaymentStatuses(current: string): string[] {
@@ -398,15 +618,8 @@ export class AdminComponent implements OnInit {
     }
   }
 
-  openUpdatePayment(paymentId: number): void {
-    this.updatingPaymentId.set(paymentId);
-    this.updatePaymentError.set('');
-  }
-
-  closeUpdatePayment(): void {
-    this.updatingPaymentId.set(null);
-    this.updatePaymentError.set('');
-  }
+  openUpdatePayment(paymentId: number): void { this.updatingPaymentId.set(paymentId); this.updatePaymentError.set(''); }
+  closeUpdatePayment(): void { this.updatingPaymentId.set(null); this.updatePaymentError.set(''); }
 
   submitPaymentStatus(paymentId: number, newStatus: string): void {
     this.isUpdatingPayment.set(true);

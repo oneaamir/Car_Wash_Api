@@ -1,0 +1,57 @@
+<aside class="customer-sidebar" [class.open]="isMobileOpen()">
+
+  <!-- Brand -->
+  <div class="sidebar-brand">
+    <span class="brand-icon">🚗</span>
+    <span class="brand-text">CarWash</span>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" class="nav-item" (click)="closeMobile()">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Overview</span>
+    </a>
+    <a routerLink="/bookings" routerLinkActive="active" class="nav-item" (click)="closeMobile()">
+      <span class="nav-icon">📅</span>
+      <span class="nav-label">My Bookings</span>
+    </a>
+    <a routerLink="/cars" routerLinkActive="active" class="nav-item" (click)="closeMobile()">
+      <span class="nav-icon">🚗</span>
+      <span class="nav-label">My Cars</span>
+    </a>
+    <a routerLink="/payments" routerLinkActive="active" class="nav-item" (click)="closeMobile()">
+      <span class="nav-icon">💳</span>
+      <span class="nav-label">Payments</span>
+    </a>
+    <a routerLink="/reviews" routerLinkActive="active" class="nav-item" (click)="closeMobile()">
+      <span class="nav-icon">⭐</span>
+      <span class="nav-label">Reviews</span>
+    </a>
+    <a routerLink="/services" routerLinkActive="active" class="nav-item" (click)="closeMobile()">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">Services</span>
+    </a>
+    <a routerLink="/profile" routerLinkActive="active" class="nav-item" (click)="closeMobile()">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">Profile</span>
+    </a>
+  </nav>
+
+  <!-- User Profile Footer -->
+  <div class="sidebar-footer">
+    <div class="user-avatar">{{ initials }}</div>
+    <div class="user-info">
+      <div class="user-name">{{ currentUser?.fullName }}</div>
+      <div class="user-email">{{ currentUser?.email }}</div>
+    </div>
+    <button class="logout-btn" (click)="logout()" title="Logout">↩</button>
+  </div>
+
+</aside>
+
+<!-- Mobile overlay -->
+<div class="sidebar-overlay" [class.show]="isMobileOpen()" (click)="closeMobile()"></div>
+
+<!-- Mobile hamburger -->
+<button class="sidebar-toggle" (click)="isMobileOpen.update(v => !v)" aria-label="Toggle menu">☰</button>

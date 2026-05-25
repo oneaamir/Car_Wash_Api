@@ -1,0 +1,145 @@
+<div class="dashboard">
+
+  <!-- Greeting Header -->
+  <div class="dash-header">
+    <div class="dash-greeting">
+      <h1>{{ greeting() }}</h1>
+      <p>Here's your car wash overview</p>
+    </div>
+    <a routerLink="/bookings" class="btn-new-booking">+ New Booking</a>
+  </div>
+
+  @if (pageError()) {
+    <div class="dash-error">{{ pageError() }}</div>
+  }
+
+  <!-- Skeleton loading -->
+  @if (isLoading()) {
+    <div class="skeleton-block tall"></div>
+    <div class="skeleton-row">
+      <div class="skeleton-block short"></div>
+      <div class="skeleton-block short"></div>
+      <div class="skeleton-block short"></div>
+    </div>
+    <div class="skeleton-block medium"></div>
+  }
+
+  @if (!isLoading()) {
+
+    <!-- LIVE BOOKING HERO CARD -->
+    <div class="live-booking-card" [class.card-no-live]="!liveBooking()">
+
+      @if (liveBooking(); as b) {
+        <div class="live-card-top">
+          <span class="live-badge">● Live booking</span>
+          <span [class]="'sbadge sbadge-' + b.status.toLowerCase()">{{ b.status }}</span>
+        </div>
+
+        <div class="live-service-name">{{ b.servicePlanName }}</div>
+        <div class="live-car-info">{{ b.carBrand }} {{ b.carModel }} · {{ b.carNumber }}</div>
+
+        <!-- Status Progress Bar -->
+        <div class="status-progress">
+          @for (step of progressSteps; track step; let i = $index) {
+            <div class="progress-step"
+              [class.filled]="statusStep(b.status) >= i"
+              [class.current]="statusStep(b.status) === i">
+              <div class="step-dot"></div>
+              @if (i < 3) {
+                <div class="step-line"></div>
+              }
+            </div>
+          }
+        </div>
+        <div class="progress-labels">
+          <span>Pending</span>
+          <span>Confirmed</span>
+          <span>In Progress</span>
+          <span>Complete</span>
+        </div>
+
+        <!-- Washer + Address Row -->
+        <div class="live-bottom-row">
+          @if (b.assignedWasherName) {
+            <div class="live-washer">
+              <div class="washer-avatar">{{ b.assignedWasherName[0] }}</div>
+              <div>
+                <div class="live-label">Your washer</div>
+                <div class="live-value">{{ b.assignedWasherName }}</div>
+              </div>
+            </div>
+          }
+          <div class="live-address">
+            <div class="live-label">📍 Service address</div>
+            <div class="live-value">{{ b.address }}</div>
+          </div>
+        </div>
+      }
+
+      @if (!liveBooking()) {
+        <div class="no-live-content">
+          <span class="no-live-icon">🚗</span>
+          <div class="no-live-text">
+            <div class="no-live-title">No active bookings</div>
+            <div class="no-live-sub">Book a wash to get started</div>
+          </div>
+          <a routerLink="/bookings" class="btn-new-booking">+ New Booking</a>
+        </div>
+      }
+
+    </div>
+
+    <!-- STATS ROW -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-number">{{ lifetimeWashes() }}</div>
+        <div class="stat-label">Lifetime washes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">₹{{ totalSpent() }}</div>
+        <div class="stat-label">Total spent</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">
+          {{ recentActivity().length > 0 ? formatDate(recentActivity()[0].bookingDate) : '—' }}
+        </div>
+        <div class="stat-label">Last booking</div>
+      </div>
+    </div>
+
+    <!-- QUICK LINKS -->
+    <div class="quick-links-row">
+      <a routerLink="/bookings" class="quick-btn">📅 My Bookings</a>
+      <a routerLink="/cars"     class="quick-btn">🚗 My Cars</a>
+      <a routerLink="/payments" class="quick-btn">💳 Payments</a>
+      <a routerLink="/reviews"  class="quick-btn">⭐ Reviews</a>
+    </div>
+
+    <!-- RECENT ACTIVITY -->
+    <div class="recent-section">
+      <div class="recent-header">
+        <h3>Recent activity</h3>
+        <a routerLink="/bookings" class="view-all-link">View all →</a>
+      </div>
+
+      @if (recentActivity().length === 0) {
+        <p class="no-activity">No bookings yet. <a routerLink="/bookings">Make your first booking →</a></p>
+      }
+
+      @for (b of recentActivity(); track b.id) {
+        <div class="activity-row">
+          <div class="activity-left">
+            <div class="activity-service">{{ b.servicePlanName }}</div>
+            <div class="activity-car">{{ b.carBrand }} {{ b.carModel }} · {{ formatDate(b.bookingDate) }}</div>
+          </div>
+          <div class="activity-right">
+            <span class="status-badge" [class]="getStatusClass(b.status)">{{ b.status }}</span>
+            <span class="activity-amount">₹{{ b.totalAmount }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+  }
+
+</div>

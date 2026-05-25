@@ -25,6 +25,13 @@ export class BookingsComponent implements OnInit {
   listError = signal('');
   statusFilter = signal('All');
   statusFilters = ['All', 'Pending', 'Confirmed', 'InProgress', 'Completed', 'Cancelled'];
+  sortOrder = signal('newest');
+  sortOptions = [
+    { value: 'newest',  label: 'Newest First' },
+    { value: 'oldest',  label: 'Oldest First' },
+    { value: 'amount-high', label: 'Amount: High to Low' },
+    { value: 'amount-low',  label: 'Amount: Low to High' }
+  ];
 
   myCars = signal<Car[]>([]);
   plans = signal<ServicePlan[]>([]);
@@ -142,6 +149,7 @@ export class BookingsComponent implements OnInit {
         this.isSubmitting.set(false);
         this.closeForm();
         this.loadBookings();
+        setTimeout(() => this.successMsg.set(''), 4000);
       },
       error: (err) => {
         this.formError.set(err.error?.message || 'Unable to create booking. Please try again.');
@@ -157,6 +165,7 @@ export class BookingsComponent implements OnInit {
       next: () => {
         this.successMsg.set('Booking cancelled successfully.');
         this.loadBookings();
+        setTimeout(() => this.successMsg.set(''), 4000);
       },
       error: () => {
         this.listError.set('Unable to cancel booking. Please try again.');
@@ -166,7 +175,13 @@ export class BookingsComponent implements OnInit {
 
   get filteredBookings(): Booking[] {
     const f = this.statusFilter();
-    return f === 'All' ? this.bookings() : this.bookings().filter(b => b.status === f);
+    let list = f === 'All' ? this.bookings() : this.bookings().filter(b => b.status === f);
+    switch (this.sortOrder()) {
+      case 'oldest':      return [...list].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      case 'amount-high': return [...list].sort((a, b) => b.totalAmount - a.totalAmount);
+      case 'amount-low':  return [...list].sort((a, b) => a.totalAmount - b.totalAmount);
+      default:            return [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
   }
 
   canCancel(status: string): boolean {

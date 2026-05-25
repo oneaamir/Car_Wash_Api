@@ -20,6 +20,7 @@ export class RegisterComponent {
     role: 'Customer'
   };
 
+  showPassword = false;
   isLoading = false;
   errorMessage = '';
   successMessage = '';

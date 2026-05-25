@@ -1,0 +1,35 @@
+<aside class="admin-sidebar">
+
+  <!-- Brand -->
+  <div class="admin-brand">
+    <span class="brand-icon">⚙️</span>
+    <div>
+      <div class="brand-title">Admin Console</div>
+      <div class="brand-sub">Operations</div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="admin-nav">
+    @for (item of navItems; track item.tab) {
+      <button
+        class="admin-nav-item"
+        [class.active]="tabService.activeTab() === item.tab"
+        (click)="selectTab(item.tab)">
+        <span class="nav-icon">{{ item.icon }}</span>
+        <span class="nav-label">{{ item.label }}</span>
+      </button>
+    }
+  </nav>
+
+  <!-- Profile Footer -->
+  <div class="admin-footer">
+    <div class="admin-avatar">{{ initials }}</div>
+    <div class="admin-user-info">
+      <div class="admin-name">{{ currentUser?.fullName }}</div>
+      <div class="admin-role">Administrator</div>
+    </div>
+    <button class="admin-logout" (click)="logout()" title="Logout">↩</button>
+  </div>
+
+</aside>

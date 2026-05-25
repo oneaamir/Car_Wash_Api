@@ -288,6 +288,8 @@ public class AdminService : IAdminService
             Address = booking.Address,
             Status = booking.Status,
             TotalAmount = booking.TotalAmount,
+            CustomerPhone = booking.User?.Phone ?? string.Empty,
+            CreatedAt = booking.CreatedAt,
             Message = message
         };
     }

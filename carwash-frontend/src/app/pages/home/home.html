@@ -13,8 +13,8 @@
       </p>
       <div class="hero-buttons">
         <!-- routerLink = Angular routing - page reload nahi hoga -->
-        <a routerLink="/register" class="btn btn-primary">Book Now</a>
-        <a routerLink="/services" class="btn btn-secondary">View Services</a>
+        <a routerLink="/register" class="btn btn-primary">Get Started</a>
+        <a routerLink="/login" class="btn btn-outline-white">Already a customer? Login →</a>
       </div>
     </div>
     <div class="hero-image">
@@ -48,7 +48,7 @@
     <div class="features-grid">
       <!-- @for loop - features array se ek ek item nikalo -->
       @for (feature of features; track feature.title) {
-        <div class="feature-card card">
+        <div class="feature-card card" routerLink="/services" style="cursor:pointer">
           <div class="feature-icon">{{ feature.icon }}</div>
           <h3 class="feature-title">{{ feature.title }}</h3>
           <p class="feature-desc">{{ feature.description }}</p>
@@ -81,6 +81,31 @@
         <div class="step-number">3</div>
         <h3>Sit Back & Relax</h3>
         <p>Our washer comes to you and cleans your car</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="testimonials-section">
+  <div class="container">
+    <h2 class="section-title">What Customers Say</h2>
+    <p class="section-subtitle">Real reviews from our satisfied customers</p>
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-comment">"Excellent service! The washer arrived on time and did a thorough job. My car looks brand new."</p>
+        <div class="t-author">— Rahul M., Premium Wash</div>
+      </div>
+      <div class="testimonial-card">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-comment">"Super convenient home service. Booked online, they came to my apartment parking. 10/10!"</p>
+        <div class="t-author">— Priya S., Home Service</div>
+      </div>
+      <div class="testimonial-card">
+        <div class="t-stars">★★★★☆</div>
+        <p class="t-comment">"Great value for money. The interior vacuum add-on was worth every rupee. Will book again."</p>
+        <div class="t-author">— Arjun K., Basic Wash + Add-on</div>
       </div>
     </div>
   </div>

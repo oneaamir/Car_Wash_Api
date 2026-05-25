@@ -7,6 +7,7 @@ export interface AdminBooking {
   assignedWasherId: number | null;
   customerName: string;
   customerEmail: string;
+  customerPhone: string;
   carNumber: string;
   servicePlanName: string;
   promoCode: string;
@@ -18,6 +19,7 @@ export interface AdminBooking {
   address: string;
   status: string;
   totalAmount: number;
+  createdAt: string;
   message: string;
 }
 

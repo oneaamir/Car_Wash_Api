@@ -1,236 +1,190 @@
 <div class="payments-page">
 
-  <!-- Page Header -->
-  <div class="page-header">
-    <div class="container">
-      <div class="header-row">
-        <div>
-          <h1>Payments & Receipts</h1>
-          <p>View your payment history and download receipts</p>
-        </div>
-        @if (!showForm()) {
-          <button class="btn btn-primary" (click)="openForm()">+ Make Payment</button>
-        }
-      </div>
+  <!-- Page Title Row -->
+  <div class="page-title-row">
+    <div>
+      <h1 class="page-title">Payments & Receipts</h1>
+      <p class="page-subtitle">View your payment history and download receipts</p>
     </div>
+    @if (!showForm() && unpaidBookings.length > 0) {
+      <button class="btn-primary-action" (click)="openForm()">+ Make Payment</button>
+    }
   </div>
 
-  <div class="container">
+  @if (successMsg())      { <div class="msg-success">{{ successMsg() }}</div> }
+  @if (listError())       { <div class="msg-error">{{ listError() }}</div> }
+  @if (receiptGenError()) { <div class="msg-error">{{ receiptGenError() }}</div> }
 
-    <!-- Messages -->
-    @if (successMsg()) {
-      <div class="success-message">{{ successMsg() }}</div>
-    }
-    @if (listError()) {
-      <div class="error-message">{{ listError() }}</div>
-    }
-    @if (receiptGenError()) {
-      <div class="error-message">{{ receiptGenError() }}</div>
-    }
+  <!-- ====== PAYMENT FORM ====== -->
+  @if (showForm()) {
+    <div class="form-card">
+      <div class="form-card-header">
+        <h2>Make Payment</h2>
+        <button class="close-btn" (click)="closeForm()">✕</button>
+      </div>
 
-    <!-- ====== PAYMENT FORM ====== -->
-    @if (showForm()) {
-      <div class="form-card">
-        <div class="form-card-header">
-          <h2>Make Payment</h2>
-          <button class="close-btn" (click)="closeForm()">✕</button>
-        </div>
+      @if (formError()) { <div class="msg-error">{{ formError() }}</div> }
 
-        @if (formError()) {
-          <div class="error-message">{{ formError() }}</div>
-        }
+      <form (ngSubmit)="onSubmit()">
+        <div class="form-grid">
 
-        <form (ngSubmit)="onSubmit()">
-          <div class="form-grid">
+          <div class="form-group full-width">
+            <label>Select Booking *</label>
+            @if (unpaidBookings.length === 0) {
+              <p class="hint-text">No bookings pending payment. <a routerLink="/bookings">Create a booking</a> first.</p>
+            } @else {
+              <select name="bookingId" [(ngModel)]="formData.bookingId">
+                <option [ngValue]="0">-- Select Booking --</option>
+                @for (booking of unpaidBookings; track booking.id) {
+                  <option [ngValue]="booking.id">
+                    #{{ booking.id }} — {{ booking.carBrand }} {{ booking.carModel }}
+                    ({{ booking.servicePlanName }}) — Rs. {{ booking.totalAmount }}
+                  </option>
+                }
+              </select>
+            }
+          </div>
 
-            <!-- Booking Selection -->
-            <div class="form-group full-width">
-              <label for="bookingId">Select Booking *</label>
-              @if (unpaidBookings.length === 0) {
-                <p class="hint-text">No bookings pending payment. Either all bookings are paid, or create a new booking from <a routerLink="/bookings">My Bookings</a> first.</p>
-              } @else {
-                <select id="bookingId" name="bookingId" [(ngModel)]="formData.bookingId">
-                  <option [ngValue]="0">-- Select Booking --</option>
-                  @for (booking of unpaidBookings; track booking.id) {
-                    <option [ngValue]="booking.id">
-                      #{{ booking.id }} — {{ booking.carBrand }} {{ booking.carModel }}
-                      ({{ booking.servicePlanName }}) — Rs. {{ booking.totalAmount }}
-                    </option>
-                  }
-                </select>
+          <div class="form-group full-width">
+            <label>Payment Method *</label>
+            <div class="method-options">
+              @for (method of paymentMethods; track method) {
+                <label class="method-option" [class.selected]="formData.paymentMethod === method">
+                  <input type="radio" name="paymentMethod" [value]="method" [(ngModel)]="formData.paymentMethod" />
+                  <span>{{ method }}</span>
+                </label>
               }
             </div>
-
-            <!-- Payment Method -->
-            <div class="form-group full-width">
-              <label>Payment Method *</label>
-              <div class="method-options">
-                @for (method of paymentMethods; track method) {
-                  <label class="method-option" [class.selected]="formData.paymentMethod === method">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      [value]="method"
-                      [(ngModel)]="formData.paymentMethod"
-                    />
-                    <span>{{ method }}</span>
-                  </label>
-                }
-              </div>
-            </div>
-
-            <!-- Transaction Reference -->
-            <div class="form-group full-width">
-              <label for="transactionRef">Transaction Reference <span class="optional">(optional)</span></label>
-              <input
-                type="text"
-                id="transactionRef"
-                name="transactionRef"
-                [(ngModel)]="formData.transactionRef"
-                placeholder="e.g. UPI transaction ID, cheque number"
-              />
-            </div>
-
           </div>
 
-          <!-- Amount Preview -->
-          @if (formData.bookingId) {
-            @let selectedBooking = getBookingById(formData.bookingId);
-            @if (selectedBooking) {
-              <div class="amount-preview">
-                <span>Payment Amount:</span>
-                <strong>Rs. {{ selectedBooking.totalAmount }}</strong>
-              </div>
-            }
-          }
-
-          <div class="form-actions">
-            <button
-              type="submit"
-              class="btn btn-primary"
-              [disabled]="isSubmitting() || !formData.bookingId || !formData.paymentMethod"
-            >
-              @if (isSubmitting()) { Processing... } @else { Confirm Payment }
-            </button>
-            <button type="button" class="btn btn-secondary" (click)="closeForm()">Cancel</button>
+          <div class="form-group full-width">
+            <label>Transaction Reference <span class="optional">(optional)</span></label>
+            <input type="text" name="transactionRef" [(ngModel)]="formData.transactionRef" placeholder="e.g. UPI transaction ID, cheque number" />
           </div>
-        </form>
-      </div>
-    }
 
-    <!-- ====== PAYMENTS LIST ====== -->
-    @if (isLoadingPayments()) {
-      <div class="loading-list">
-        <div class="skeleton-card"></div>
-        <div class="skeleton-card"></div>
-      </div>
-    }
-
-    @if (!isLoadingPayments() && !listError()) {
-      @if (payments().length === 0) {
-        <div class="empty-state">
-          <span class="empty-icon">💳</span>
-          <h3>No payment records found</h3>
-          <p>Complete a booking and make a payment to receive your receipt.</p>
-          @if (!showForm()) {
-            <button class="btn btn-primary" (click)="openForm()">+ Make Payment</button>
-          }
         </div>
-      } @else {
 
+        @if (formData.bookingId) {
+          @let selectedBooking = getBookingById(formData.bookingId);
+          @if (selectedBooking) {
+            <div class="amount-preview">
+              <span>Payment Amount:</span>
+              <strong>Rs. {{ selectedBooking.totalAmount }}</strong>
+            </div>
+          }
+        }
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary-action" [disabled]="isSubmitting() || !formData.bookingId || !formData.paymentMethod">
+            {{ isSubmitting() ? 'Processing...' : 'Confirm Payment' }}
+          </button>
+          <button type="button" class="btn-secondary-action" (click)="closeForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (isLoadingPayments()) {
+    <div class="loading-list">
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+    </div>
+  }
+
+  <!-- Payments List -->
+  @if (!isLoadingPayments() && !listError()) {
+    @if (payments().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">💳</div>
+        <h3>No payment records found</h3>
+        <p>Complete a booking and make a payment to receive your receipt.</p>
+        @if (!showForm()) {
+          <button class="btn-primary-action" (click)="openForm()">+ Make Payment</button>
+        }
+      </div>
+    } @else {
+
+      @if (totalPaid > 0) {
+        <div class="total-paid-bar">
+          Total paid: <strong>Rs. {{ totalPaid }}</strong>
+        </div>
+      }
+
+      <div class="filter-sort-bar">
         <div class="filter-chips">
           @for (s of paymentFilters; track s) {
             <button class="chip" [class.active]="paymentFilter() === s" (click)="paymentFilter.set(s)">{{ s }}</button>
           }
         </div>
+        <select class="sort-select" [ngModel]="sortOrder()" (ngModelChange)="sortOrder.set($event)">
+          @for (opt of sortOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
 
-        @if (filteredPayments.length === 0) {
-          <div class="empty-state">
-            <span class="empty-icon">🔍</span>
-            <h3>No {{ paymentFilter() }} payments</h3>
-            <p>No payments match this filter. <button class="link-btn" (click)="paymentFilter.set('All')">Show all</button></p>
-          </div>
-        } @else {
-        <div class="section-title">Payment History</div>
-
+      @if (filteredPayments.length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <h3>No {{ paymentFilter() }} payments</h3>
+          <p><button class="link-btn" (click)="paymentFilter.set('All')">Show all</button></p>
+        </div>
+      } @else {
         <div class="payments-list">
           @for (payment of filteredPayments; track payment.id) {
-
             @let receipt = getReceiptForPayment(payment.id);
             @let booking = getBookingById(payment.bookingId);
 
-            <div class="payment-card">
+            <div [class]="'payment-card ps-' + payment.paymentStatus.toLowerCase()">
 
-              <!-- Payment Header -->
               <div class="payment-header">
-                <div class="payment-id">Payment #{{ payment.id }}</div>
-                <span class="status-badge" [class]="getPaymentStatusClass(payment.paymentStatus)">
-                  {{ payment.paymentStatus }}
-                </span>
+                <div class="payment-id-row">
+                  <span class="payment-id">Payment #{{ payment.id }}</span>
+                  <span class="status-pill" [class]="getPaymentStatusClass(payment.paymentStatus)">{{ payment.paymentStatus }}</span>
+                </div>
+                <div class="amount-highlight">Rs. {{ payment.amount }}</div>
               </div>
 
-              <!-- Payment Details -->
               <div class="payment-body">
                 @if (booking) {
-                  <div class="payment-detail">
+                  <div class="detail-row">
                     <span class="detail-label">Vehicle</span>
-                    <span class="detail-value">
-                      {{ booking.carBrand }} {{ booking.carModel }}
-                      <small>({{ booking.carNumber }})</small>
-                    </span>
+                    <span class="detail-val">{{ booking.carBrand }} {{ booking.carModel }} <small>({{ booking.carNumber }})</small></span>
                   </div>
-                  <div class="payment-detail">
+                  <div class="detail-row">
                     <span class="detail-label">Service</span>
-                    <span class="detail-value">{{ booking.servicePlanName }}</span>
+                    <span class="detail-val">{{ booking.servicePlanName }}</span>
                   </div>
                 }
-                <div class="payment-detail">
+                <div class="detail-row">
                   <span class="detail-label">Method</span>
-                  <span class="detail-value method-badge">{{ payment.paymentMethod }}</span>
+                  <span class="detail-val"><span class="method-badge">{{ payment.paymentMethod }}</span></span>
                 </div>
                 @if (payment.transactionRef) {
-                  <div class="payment-detail">
-                    <span class="detail-label">Transaction Ref</span>
-                    <span class="detail-value txn-id">{{ payment.transactionRef }}</span>
+                  <div class="detail-row">
+                    <span class="detail-label">Ref</span>
+                    <span class="detail-val txn-id">{{ payment.transactionRef }}</span>
                   </div>
                 }
-                <div class="payment-detail full-width">
-                  <span class="detail-label">Amount Paid</span>
-                  <span class="detail-value amount-value">Rs. {{ payment.amount }}</span>
-                </div>
               </div>
 
-              <!-- Receipt Actions -->
               <div class="payment-actions">
-
-                <!-- Generate Receipt: only when payment is Success and no receipt yet -->
                 @if (payment.paymentStatus.toLowerCase() === 'success' && !receipt) {
-                  <button
-                    class="btn-generate-receipt"
-                    (click)="generateReceipt(payment)"
-                    [disabled]="generatingReceiptId() === payment.id"
-                  >
-                    @if (generatingReceiptId() === payment.id) { Generating... }
-                    @else { 📄 Generate Receipt }
+                  <button class="btn-generate-receipt" (click)="generateReceipt(payment)" [disabled]="generatingReceiptId() === payment.id">
+                    {{ generatingReceiptId() === payment.id ? 'Generating...' : '📄 Generate Receipt' }}
                   </button>
                 }
-
-                <!-- View Receipt: once receipt exists -->
                 @if (receipt) {
                   <button class="btn-receipt" (click)="toggleReceipt(payment.id)">
-                    @if (viewingReceiptId() === payment.id) { Hide Receipt ▲ }
-                    @else { View Receipt ▼ }
+                    {{ viewingReceiptId() === payment.id ? 'Hide Receipt ▲' : 'View Receipt ▼' }}
                   </button>
                 }
-
-                <!-- Pending note -->
                 @if (payment.paymentStatus.toLowerCase() === 'pending') {
                   <span class="pending-note">⏳ Awaiting admin verification</span>
                 }
-
               </div>
 
-              <!-- Receipt Panel -->
               @if (viewingReceiptId() === payment.id && receipt) {
                 <div class="receipt-panel" id="receipt-{{ payment.id }}">
                   <div class="receipt-header">
@@ -243,45 +197,21 @@
 
                   <div class="receipt-body">
                     @if (booking) {
-                      <div class="receipt-row">
-                        <span>Vehicle</span>
-                        <span>{{ booking.carBrand }} {{ booking.carModel }} ({{ booking.carNumber }})</span>
-                      </div>
-                      <div class="receipt-row">
-                        <span>Service Plan</span>
-                        <span>{{ booking.servicePlanName }}</span>
-                      </div>
+                      <div class="receipt-row"><span>Vehicle</span><span>{{ booking.carBrand }} {{ booking.carModel }} ({{ booking.carNumber }})</span></div>
+                      <div class="receipt-row"><span>Service Plan</span><span>{{ booking.servicePlanName }}</span></div>
                       @if (booking.addOnNames.length) {
                         @for (name of booking.addOnNames; track name) {
-                          <div class="receipt-row addon-row">
-                            <span>{{ name }}</span>
-                            <span>—</span>
-                          </div>
+                          <div class="receipt-row addon-row"><span>{{ name }}</span><span>—</span></div>
                         }
                       }
-                      <div class="receipt-row">
-                        <span>Booking Date</span>
-                        <span>{{ formatDate(booking.bookingDate) }}</span>
-                      </div>
+                      <div class="receipt-row"><span>Booking Date</span><span>{{ formatDate(booking.bookingDate) }}</span></div>
                     }
-                    <div class="receipt-row">
-                      <span>Payment Method</span>
-                      <span>{{ payment.paymentMethod }}</span>
-                    </div>
+                    <div class="receipt-row"><span>Payment Method</span><span>{{ payment.paymentMethod }}</span></div>
                     @if (payment.transactionRef) {
-                      <div class="receipt-row">
-                        <span>Transaction Ref</span>
-                        <span class="txn-id">{{ payment.transactionRef }}</span>
-                      </div>
+                      <div class="receipt-row"><span>Transaction Ref</span><span class="txn-id">{{ payment.transactionRef }}</span></div>
                     }
-                    <div class="receipt-row">
-                      <span>Receipt Date</span>
-                      <span>{{ formatDate(receipt.generatedAt) }}</span>
-                    </div>
-                    <div class="receipt-total">
-                      <span>Total Paid</span>
-                      <strong>Rs. {{ payment.amount }}</strong>
-                    </div>
+                    <div class="receipt-row"><span>Receipt Date</span><span>{{ formatDate(receipt.generatedAt) }}</span></div>
+                    <div class="receipt-total"><span>Total Paid</span><strong>Rs. {{ payment.amount }}</strong></div>
                   </div>
                 </div>
               }
@@ -289,10 +219,8 @@
             </div>
           }
         </div>
-        }
-
       }
     }
+  }
 
-  </div>
 </div>

@@ -40,5 +40,9 @@ public class AdminBookingResponse
 
     public decimal TotalAmount { get; set; }
 
+    public string CustomerPhone { get; set; } = string.Empty;
+
+    public DateTime CreatedAt { get; set; }
+
     public string Message { get; set; } = string.Empty;
 }

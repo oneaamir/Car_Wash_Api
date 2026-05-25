@@ -9,6 +9,7 @@ export interface Booking {
   carBrand: string;
   carModel: string;
   servicePlanName: string;
+  servicePlanDescription: string;
   promoCode: string;
   assignedWasherName: string;
   assignedWasherEmail: string;
@@ -19,6 +20,9 @@ export interface Booking {
   notes: string;
   status: string;
   totalAmount: number;
+  customerName: string;
+  customerPhone: string;
+  createdAt: string;
   message: string;
 }
 
